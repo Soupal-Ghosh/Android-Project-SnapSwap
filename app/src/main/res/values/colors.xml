@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark background color for the whole activity -->
+    <color name="dark_background">#2C003E</color> <!-- Dark Purple background -->
+
+    <!-- Purplish-Pink colors for buttons -->
+    <color name="purplish_pink">#9C27B0</color> <!-- Purple-Pink color for buttons -->
+    <color name="purplish_pink_dark">#7B1FA2</color> <!-- Darker purplish-pink for disabled buttons -->
+</resources>

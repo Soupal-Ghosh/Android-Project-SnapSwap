@@ -1,0 +1,45 @@
+[versions]
+agp = "8.9.0"
+kotlin = "1.9.24"
+coreKtx = "1.12.0"
+appcompat = "1.6.1"
+material = "1.9.0"
+constraintlayout = "2.1.4"
+navigationFragmentKtx = "2.7.5"
+navigationUiKtx = "2.7.5"
+glide = "4.15.1"
+ksp = "1.9.21-1.0.15"
+
+# Testing
+junit = "4.13.2"
+androidxJunit = "1.1.5"
+espresso = "3.5.1"
+
+# UI Libraries
+recyclerView = "1.4.0"
+viewPager2 = "1.1.0"
+lottie = "5.2.0"
+activity = "1.10.1"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+
+# UI Libraries
+recyclerView = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerView" }
+viewPager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewPager2" }
+lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
+
+# Testing Libraries
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+
