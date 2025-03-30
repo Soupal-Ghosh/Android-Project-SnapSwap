@@ -10,13 +10,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 
-class PhotoAdapter(
+class PhotoCollectionAdapter(
     private val onPhotoClick: (Photo) -> Unit
-) : ListAdapter<Photo, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
+) : ListAdapter<Photo, PhotoCollectionAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_photo, parent, false)
+            .inflate(R.layout.item_collection_photo, parent, false)
         return PhotoViewHolder(view)
     }
 
@@ -67,4 +67,4 @@ class PhotoAdapter(
             return oldItem == newItem
         }
     }
-}
+} 

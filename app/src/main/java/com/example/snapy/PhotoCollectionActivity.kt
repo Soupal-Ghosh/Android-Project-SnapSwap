@@ -1,0 +1,165 @@
+package com.example.snapy
+
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.io.File
+
+class PhotoCollectionActivity : AppCompatActivity() {
+    private lateinit var adapter: GridPhotoAdapter
+    private lateinit var photos: ArrayList<Photo>
+    private var collectionType: String = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_photo_collection)
+
+        // Get the collection type and photos from intent
+        collectionType = intent.getStringExtra("type") ?: ""
+        photos = intent.getParcelableArrayListExtra("photos") ?: ArrayList()
+
+        // Setup RecyclerView with GridLayoutManager
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        adapter = GridPhotoAdapter { photo ->
+            // Handle photo click
+            Toast.makeText(this, "Photo ${photo.id} clicked", Toast.LENGTH_SHORT).show()
+        }
+        recyclerView.adapter = adapter
+        // Use GridLayoutManager with 3 columns
+        recyclerView.layoutManager = GridLayoutManager(this, 3)
+        adapter.submitList(photos)
+
+        // Setup buttons based on collection type
+        setupButtons()
+    }
+
+    private fun setupButtons() {
+        val likedButtonsLayout = findViewById<View>(R.id.likedButtonsLayout)
+        val dislikedButtonsLayout = findViewById<View>(R.id.dislikedButtonsLayout)
+
+        when (collectionType) {
+            "liked" -> {
+                likedButtonsLayout.visibility = View.VISIBLE
+                dislikedButtonsLayout.visibility = View.GONE
+
+                // Setup Undo button
+                findViewById<FloatingActionButton>(R.id.fabUndo).setOnClickListener {
+                    // Move photos back to main list
+                    val intent = Intent().apply {
+                        putExtra("action", "undo_like")
+                        putExtra("photos", photos)
+                    }
+                    setResult(RESULT_OK, intent)
+                    finish()
+                }
+
+                // Setup Share button
+                findViewById<FloatingActionButton>(R.id.fabShare).setOnClickListener {
+                    sharePhotos()
+                }
+            }
+            "disliked" -> {
+                likedButtonsLayout.visibility = View.GONE
+                dislikedButtonsLayout.visibility = View.VISIBLE
+
+                // Setup Undo button
+                findViewById<FloatingActionButton>(R.id.fabUndoDislike).setOnClickListener {
+                    // Move photos back to main list
+                    val intent = Intent().apply {
+                        putExtra("action", "undo_dislike")
+                        putExtra("photos", photos)
+                    }
+                    setResult(RESULT_OK, intent)
+                    finish()
+                }
+
+                // Setup Delete button
+                findViewById<FloatingActionButton>(R.id.fabDelete).setOnClickListener {
+                    showDeleteConfirmationDialog()
+                }
+            }
+        }
+    }
+
+    private fun sharePhotos() {
+        try {
+            if (photos.isEmpty()) {
+                Toast.makeText(this, "No photos to share", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Create a sharing intent for multiple images
+            val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = "image/*"
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            // Create a list to hold the URIs
+            val imageUris = ArrayList<Uri>()
+
+            // Process each photo
+            photos.forEach { photo ->
+                photo.imageUri?.let { uri ->
+                    when {
+                        uri.scheme == "content" -> {
+                            // For content URIs, use the URI directly
+                            imageUris.add(uri)
+                        }
+                        uri.scheme == "file" -> {
+                            // For file URIs, use FileProvider
+                            val file = File(uri.path ?: return@forEach)
+                            val contentUri = FileProvider.getUriForFile(
+                                this,
+                                "${packageName}.fileprovider",
+                                file
+                            )
+                            imageUris.add(contentUri)
+                        }
+                        else -> {
+                            // For other URIs, try to use them directly
+                            imageUris.add(uri)
+                        }
+                    }
+                }
+            }
+
+            if (imageUris.isEmpty()) {
+                Toast.makeText(this, "No valid photos to share", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Add the list of URIs to the intent
+            shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, imageUris)
+
+            // Start the sharing activity
+            startActivity(Intent.createChooser(shareIntent, "Share Photos"))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to share photos: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showDeleteConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Photos")
+            .setMessage("Are you sure you want to delete these photos?")
+            .setPositiveButton("Delete") { _, _ ->
+                // Delete photos
+                val intent = Intent().apply {
+                    putExtra("action", "delete")
+                    putExtra("photos", photos)
+                }
+                setResult(RESULT_OK, intent)
+                finish()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+} 
