@@ -71,6 +71,10 @@
         <activity
             android:name=".AICategorizationActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".PhotoCollageActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

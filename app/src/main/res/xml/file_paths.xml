@@ -13,6 +13,6 @@
         name="external_cache"
         path="." />
     <external-files-path
-        name="external_files_path"
+        name="collages"
         path="." />
 </paths> 

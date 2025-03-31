@@ -2,6 +2,7 @@ package com.example.snapy
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 
@@ -22,7 +23,7 @@ class ThirdActivity : AppCompatActivity() {
 
         // Photo Collage Button
         findViewById<MaterialButton>(R.id.btnCollage).setOnClickListener {
-            startActivity(Intent(this, CollageActivity::class.java))
+            startActivity(Intent(this, PhotoCollageActivity::class.java))
         }
     }
 }
