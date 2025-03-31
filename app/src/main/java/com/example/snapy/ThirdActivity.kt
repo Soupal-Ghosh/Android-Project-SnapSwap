@@ -2,21 +2,27 @@ package com.example.snapy
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
 
 class ThirdActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_third)
 
-        // Get the PhotoSwipeButton from the layout
-        val photoSwipeButton = findViewById<Button>(R.id.photoSwipeButton)
+        // Photo Swipe Button
+        findViewById<MaterialButton>(R.id.btnPhotoSwipe).setOnClickListener {
+            startActivity(Intent(this, PhotoSwipeActivity::class.java))
+        }
 
-        // Set onClickListener to navigate to PhotoSwipeActivity
-        photoSwipeButton.setOnClickListener {
-            val intent = Intent(this, PhotoSwipeActivity::class.java)
-            startActivity(intent)
+        // AI Categorization Button
+        findViewById<MaterialButton>(R.id.btnAICategorization).setOnClickListener {
+            startActivity(Intent(this, AICategorizationActivity::class.java))
+        }
+
+        // Photo Collage Button
+        findViewById<MaterialButton>(R.id.btnCollage).setOnClickListener {
+            startActivity(Intent(this, CollageActivity::class.java))
         }
     }
 }

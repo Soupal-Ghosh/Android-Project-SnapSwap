@@ -1,54 +1,73 @@
 package com.example.snapy
 
+import android.net.Uri
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.snapy.databinding.ItemGridPhotoBinding
 
-class GridPhotoAdapter(private val onPhotoClick: (Photo) -> Unit) :
-    ListAdapter<Photo, GridPhotoAdapter.GridPhotoViewHolder>(GridPhotoDiffCallback()) {
+class GridPhotoAdapter<T : Any>(
+    private val onPhotoClick: ((Photo) -> Unit)? = null
+) : ListAdapter<T, GridPhotoAdapter.GridPhotoViewHolder>(GridPhotoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GridPhotoViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_grid_photo, parent, false)
-        return GridPhotoViewHolder(view)
+        val binding = ItemGridPhotoBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return GridPhotoViewHolder(binding, onPhotoClick)
     }
 
     override fun onBindViewHolder(holder: GridPhotoViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    inner class GridPhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val photoImageView: ImageView = itemView.findViewById(R.id.photoImageView)
+    class GridPhotoViewHolder(
+        private val binding: ItemGridPhotoBinding,
+        private val onPhotoClick: ((Photo) -> Unit)?
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-        init {
-            itemView.setOnClickListener {
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    onPhotoClick(getItem(position))
+        fun bind(item: Any) {
+            when (item) {
+                is Photo -> {
+                    Glide.with(binding.root)
+                        .load(item.imageUri)
+                        .centerCrop()
+                        .into(binding.imageView)
+                    
+                    binding.root.setOnClickListener {
+                        onPhotoClick?.invoke(item)
+                    }
+                }
+                is Uri -> {
+                    Glide.with(binding.root)
+                        .load(item)
+                        .centerCrop()
+                        .into(binding.imageView)
                 }
             }
         }
-
-        fun bind(photo: Photo) {
-            Glide.with(itemView.context)
-                .load(photo.imageUri)
-                .centerCrop()
-                .into(photoImageView)
-        }
     }
 
-    private class GridPhotoDiffCallback : DiffUtil.ItemCallback<Photo>() {
-        override fun areItemsTheSame(oldItem: Photo, newItem: Photo): Boolean {
-            return oldItem.id == newItem.id
+    private class GridPhotoDiffCallback<T : Any> : DiffUtil.ItemCallback<T>() {
+        override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
+            return when {
+                oldItem is Photo && newItem is Photo -> oldItem.id == newItem.id
+                oldItem is Uri && newItem is Uri -> oldItem == newItem
+                else -> false
+            }
         }
 
-        override fun areContentsTheSame(oldItem: Photo, newItem: Photo): Boolean {
-            return oldItem == newItem
+        override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
+            return when {
+                oldItem is Photo && newItem is Photo -> oldItem == newItem
+                oldItem is Uri && newItem is Uri -> oldItem == newItem
+                else -> false
+            }
         }
     }
 } 

@@ -1,58 +1,67 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="20dp"
-    android:background="@color/dark_background"> <!-- Dark background for the whole screen -->
+    android:background="@color/black">
 
-    <TextView
-        android:id="@+id/welcomeText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Welcome to SnapSwipe"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-    android:layout_marginBottom="30dp"/>
-
-    <Button
-        android:id="@+id/photoSwipeButton"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Photo Swipe"
-        android:background="@color/purplish_pink"
-    android:textColor="@android:color/white"
-    android:layout_marginBottom="10dp"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center">
 
-    <!-- Disable other buttons for now -->
-    <Button
-        android:id="@+id/quickNoteButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Quick Note &amp; File Swiper"
-        android:background="@color/purplish_pink_dark"
-    android:textColor="@android:color/white"
-    android:layout_marginBottom="10dp"
-    android:enabled="false"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome to Snapy"
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp"/>
 
-    <Button
-        android:id="@+id/memoryScrapbookButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Memory Scrapbook"
-        android:background="@color/purplish_pink_dark"
-        android:textColor="@android:color/white"
-        android:layout_marginBottom="10dp"
-        android:enabled="false"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPhotoSwipe"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Photo Swipe"
+            android:textSize="18sp"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            app:cornerRadius="8dp"
+            app:backgroundTint="#9C27B0"
+            android:textColor="@color/white"
+            app:strokeColor="#FF4081"
+            app:strokeWidth="2dp"/>
 
-    <Button
-        android:id="@+id/imageSortingButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="AI-Powered Image Sorting"
-        android:background="@color/purplish_pink_dark"
-        android:textColor="@android:color/white"
-        android:enabled="false"/>
-</LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAICategorization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AI Photo Categorization"
+            android:textSize="18sp"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp"
+            app:cornerRadius="8dp"
+            app:backgroundTint="#9C27B0"
+            android:textColor="@color/white"
+            app:strokeColor="#FF4081"
+            app:strokeWidth="2dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCollage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Photo Collage"
+            android:textSize="18sp"
+            android:padding="16dp"
+            app:cornerRadius="8dp"
+            app:backgroundTint="#9C27B0"
+            android:textColor="@color/white"
+            app:strokeColor="#FF4081"
+            app:strokeWidth="2dp"/>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -9,80 +9,85 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.example.snapy.databinding.ActivityPhotoCollectionBinding
 import java.io.File
 
 class PhotoCollectionActivity : AppCompatActivity() {
-    private lateinit var adapter: GridPhotoAdapter
-    private lateinit var photos: ArrayList<Photo>
+    private lateinit var binding: ActivityPhotoCollectionBinding
+    private lateinit var adapter: GridPhotoAdapter<Photo>
     private var collectionType: String = ""
+    private val photos = mutableListOf<Photo>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_photo_collection)
+        binding = ActivityPhotoCollectionBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Get the collection type and photos from intent
         collectionType = intent.getStringExtra("type") ?: ""
-        photos = intent.getParcelableArrayListExtra("photos") ?: ArrayList()
+        intent.getParcelableArrayListExtra<Photo>("photos")?.let { photos.addAll(it) }
 
-        // Setup RecyclerView with GridLayoutManager
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        adapter = GridPhotoAdapter { photo ->
-            // Handle photo click
-            Toast.makeText(this, "Photo ${photo.id} clicked", Toast.LENGTH_SHORT).show()
-        }
-        recyclerView.adapter = adapter
-        // Use GridLayoutManager with 3 columns
-        recyclerView.layoutManager = GridLayoutManager(this, 3)
-        adapter.submitList(photos)
-
-        // Setup buttons based on collection type
+        setupRecyclerView()
         setupButtons()
+        adapter.submitList(photos)
+    }
+
+    private fun setupRecyclerView() {
+        adapter = GridPhotoAdapter { photo ->
+            val intent = Intent(this, PhotoSwipeActivity::class.java).apply {
+                putExtra("photo_id", photo.id)
+                putExtra("photo_uri", photo.imageUri.toString())
+            }
+            startActivity(intent)
+        }
+        binding.recyclerView.apply {
+            layoutManager = GridLayoutManager(this@PhotoCollectionActivity, 3)
+            adapter = this@PhotoCollectionActivity.adapter
+        }
     }
 
     private fun setupButtons() {
-        val likedButtonsLayout = findViewById<View>(R.id.likedButtonsLayout)
-        val dislikedButtonsLayout = findViewById<View>(R.id.dislikedButtonsLayout)
+        binding.likedButtonsLayout.visibility = View.GONE
+        binding.dislikedButtonsLayout.visibility = View.GONE
 
         when (collectionType) {
             "liked" -> {
-                likedButtonsLayout.visibility = View.VISIBLE
-                dislikedButtonsLayout.visibility = View.GONE
+                binding.likedButtonsLayout.visibility = View.VISIBLE
+                binding.dislikedButtonsLayout.visibility = View.GONE
 
                 // Setup Undo button
-                findViewById<FloatingActionButton>(R.id.fabUndo).setOnClickListener {
+                binding.fabUndo.setOnClickListener {
                     // Move photos back to main list
                     val intent = Intent().apply {
                         putExtra("action", "undo_like")
-                        putExtra("photos", photos)
+                        putExtra("photos", ArrayList(photos))
                     }
                     setResult(RESULT_OK, intent)
                     finish()
                 }
 
                 // Setup Share button
-                findViewById<FloatingActionButton>(R.id.fabShare).setOnClickListener {
+                binding.fabShare.setOnClickListener {
                     sharePhotos()
                 }
             }
             "disliked" -> {
-                likedButtonsLayout.visibility = View.GONE
-                dislikedButtonsLayout.visibility = View.VISIBLE
+                binding.likedButtonsLayout.visibility = View.GONE
+                binding.dislikedButtonsLayout.visibility = View.VISIBLE
 
                 // Setup Undo button
-                findViewById<FloatingActionButton>(R.id.fabUndoDislike).setOnClickListener {
+                binding.fabUndoDislike.setOnClickListener {
                     // Move photos back to main list
                     val intent = Intent().apply {
                         putExtra("action", "undo_dislike")
-                        putExtra("photos", photos)
+                        putExtra("photos", ArrayList(photos))
                     }
                     setResult(RESULT_OK, intent)
                     finish()
                 }
 
                 // Setup Delete button
-                findViewById<FloatingActionButton>(R.id.fabDelete).setOnClickListener {
+                binding.fabDelete.setOnClickListener {
                     showDeleteConfirmationDialog()
                 }
             }
@@ -154,7 +159,7 @@ class PhotoCollectionActivity : AppCompatActivity() {
                 // Delete photos
                 val intent = Intent().apply {
                     putExtra("action", "delete")
-                    putExtra("photos", photos)
+                    putExtra("photos", ArrayList(photos))
                 }
                 setResult(RESULT_OK, intent)
                 finish()
