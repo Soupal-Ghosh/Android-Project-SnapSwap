@@ -1,26 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black">
+    android:background="@drawable/bglogin_snapswap"
+    android:orientation="vertical">
 
+    <!-- Onboarding container -->
+    <LinearLayout
+        android:id="@+id/onboardingContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:padding="24dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/line1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Here we categorise pictures which helps cleaning your gallery and file selection seamless with just a bunch of swipes"
+            android:textColor="#FFFFFF"
+            android:translationY="1000dp"
+            android:textSize="24sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/line2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Click left to like and right to dislike and tap anywhere on the screen to begin !"
+            android:textColor="#FFFFFF"
+            android:translationY="1000dp"
+            android:textSize="20sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/line3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="*👍 stores liked images"
+            android:textColor="#FFFFFF"
+            android:translationY="1000dp"
+            android:textSize="20sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/line4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" *👎 stores disliked images"
+            android:textColor="#FFFFFF"
+            android:translationY="1000dp"
+            android:textSize="20sp"
+            android:layout_marginBottom="16dp" />
+    </LinearLayout>
+
+    <!-- Gallery RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:padding="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
+    <!-- Floating Action Buttons at Bottom Center -->
     <LinearLayout
+        android:id="@+id/fabContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
-        android:padding="16dp"
         android:gravity="center"
+        android:padding="16dp"
+        android:visibility="visible"
         android:background="@android:color/transparent">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -39,6 +101,14 @@
             android:contentDescription="Add Photo"
             android:src="@drawable/ic_add" />
 
+        <!--<com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:contentDescription="Add Photo"
+            android:src="@drawable/ic_add" />-->
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabDislikedPhotos"
             android:layout_width="wrap_content"
@@ -46,7 +116,6 @@
             android:layout_marginStart="16dp"
             android:contentDescription="View Disliked Photos"
             android:src="@drawable/ic_thumb_down" />
-
     </LinearLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</RelativeLayout>

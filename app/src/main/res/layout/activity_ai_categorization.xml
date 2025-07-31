@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/dark_background">
+    android:background="@drawable/bglogin_snapswap">
 
     <TextView
         android:id="@+id/titleTextView"
@@ -25,7 +25,7 @@
         android:layout_marginTop="32dp"
         android:text="Select Photos"
         android:textColor="@color/white"
-        app:backgroundTint="#FF6200EE"
+        app:backgroundTint="@color/purplish_pink"
         app:cornerRadius="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,7 +48,7 @@
         android:layout_marginBottom="32dp"
         android:text="Start Categorization"
         android:textColor="@color/white"
-        app:backgroundTint="#FF6200EE"
+        app:backgroundTint="@color/purplish_pink"
         app:cornerRadius="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/dark_background"/>
-    <corners android:radius="16dp"/>
-</shape> 
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Background image layer -->
+    <item>
+        <bitmap
+            android:src="@drawable/bglogin_snapswap"
+            android:gravity="fill"/>
+    </item>
+
+    <!-- Optional overlay layer with rounded corners -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent"/>
+            <corners android:radius="16dp"/>
+        </shape>
+    </item>
+
+</layer-list>

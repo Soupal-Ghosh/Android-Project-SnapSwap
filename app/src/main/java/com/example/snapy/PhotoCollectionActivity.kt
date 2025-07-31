@@ -34,17 +34,18 @@ class PhotoCollectionActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         adapter = GridPhotoAdapter { photo ->
-            val intent = Intent(this, PhotoSwipeActivity::class.java).apply {
-                putExtra("photo_id", photo.id)
-                putExtra("photo_uri", photo.imageUri.toString())
+            val intent = Intent(this, ImageViewerActivity::class.java).apply {
+                putExtra("imageUri", photo.imageUri.toString())  // send as String
             }
             startActivity(intent)
         }
+
         binding.recyclerView.apply {
             layoutManager = GridLayoutManager(this@PhotoCollectionActivity, 3)
             adapter = this@PhotoCollectionActivity.adapter
         }
     }
+
 
     private fun setupButtons() {
         binding.likedButtonsLayout.visibility = View.GONE

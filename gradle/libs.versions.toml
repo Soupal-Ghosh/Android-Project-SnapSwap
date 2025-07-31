@@ -20,6 +20,8 @@ recyclerView = "1.4.0"
 viewPager2 = "1.1.0"
 lottie = "5.2.0"
 activity = "1.10.1"
+googleid = "1.1.1"
+compiler = "3.2.0-alpha11"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,4 +44,6 @@ androidx-activity = { group = "androidx.activity", name = "activity", version.re
 
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+androidx-compiler = { group = "androidx.databinding", name = "compiler", version.ref = "compiler" }
 

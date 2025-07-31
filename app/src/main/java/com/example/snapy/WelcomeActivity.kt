@@ -1,5 +1,6 @@
 package com.example.snapy
 
+//import MainActivity
 import android.content.Intent
 import android.os.Bundle
 import android.view.animation.AnimationUtils
@@ -31,7 +32,7 @@ class WelcomeActivity : AppCompatActivity() {
 
         // Set button click listener
         getStartedButton.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, ThirdActivity::class.java))
             finish()
         }
     }
