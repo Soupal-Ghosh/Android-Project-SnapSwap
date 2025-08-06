@@ -4,11 +4,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import java.text.SimpleDateFormat
+import java.util.*
 
 class PhotoAdapter(
     private val onPhotoClick: (Photo) -> Unit
@@ -26,10 +29,11 @@ class PhotoAdapter(
 
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val photoImageView: ImageView = itemView.findViewById(R.id.photoImageView)
+        private val photoDateTextView: TextView = itemView.findViewById(R.id.photoDateTextView)
 
         init {
             itemView.setOnClickListener {
-                val position = adapterPosition
+                val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     onPhotoClick(getItem(position))
                 }
@@ -37,24 +41,27 @@ class PhotoAdapter(
         }
 
         fun bind(photo: Photo) {
+            // Load image
             val options = RequestOptions()
                 .centerCrop()
                 .dontAnimate()
 
-            when {
-                photo.imageUri != null -> {
-                    Glide.with(itemView.context)
-                        .load(photo.imageUri)
-                        .apply(options)
-                        .into(photoImageView)
-                }
-                photo.imageResId != 0 -> {
-                    Glide.with(itemView.context)
-                        .load(photo.imageResId)
-                        .apply(options)
-                        .into(photoImageView)
-                }
+            if (photo.imageUri != null) {
+                Glide.with(itemView.context)
+                    .load(photo.imageUri)
+                    .apply(options)
+                    .into(photoImageView)
+            } else if (photo.imageResId != 0) {
+                Glide.with(itemView.context)
+                    .load(photo.imageResId)
+                    .apply(options)
+                    .into(photoImageView)
             }
+
+            // Format and set the date
+            val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+            val formattedDate = formatter.format(Date(photo.dateTaken))
+            photoDateTextView.text = formattedDate
         }
     }
 

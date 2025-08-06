@@ -7,10 +7,31 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
-    <ImageView
-        android:id="@+id/photoImageView"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop" />
+        android:layout_height="match_parent">
+
+        <!-- Your photo -->
+        <ImageView
+            android:id="@+id/photoImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <!-- Date stamp overlay -->
+        <TextView
+            android:id="@+id/photoDateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="01 Jan 2024"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:background="#66000000"
+            android:padding="6dp"
+            android:layout_gravity="top|start"
+            android:layout_margin="8dp" />
+
+    </FrameLayout>
 
 </androidx.cardview.widget.CardView>

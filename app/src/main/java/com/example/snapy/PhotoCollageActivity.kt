@@ -28,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -160,7 +161,7 @@ class PhotoCollageActivity : AppCompatActivity() {
     private fun generateQuote(collageType: String): String {
         val quotes = when (collageType.lowercase()) {
             "birthday" -> listOf("🎉 Happy Birthday!", "🎂 Enjoy your day!", "🎈 Wishing joy!")
-            "travel" -> listOf("✈️ Let’s travel!", "🌍 Adventure begins!", "🗺️ Explore more!")
+            "travel" -> listOf("✈️ Let's travel!", "🌍 Adventure begins!", "🗺️ Explore more!")
             "family" -> listOf("❤️ Family forever", "👨‍👩‍👧‍👦 Together is home", "💝 Precious bonds")
             else -> listOf("📸 Making memories", "💫 Capturing life", "✨ Moments forever")
         }
@@ -255,7 +256,7 @@ class PhotoCollageActivity : AppCompatActivity() {
         val fileBytes = inputStream.readBytes()
         inputStream.close()
 
-        val mediaType = MediaType.parse("image/jpeg")
+        val mediaType = "image/jpeg".toMediaTypeOrNull()
             ?: throw Exception("Invalid media type")
 
         val requestBody = MultipartBody.Builder()
@@ -273,9 +274,12 @@ class PhotoCollageActivity : AppCompatActivity() {
             .build()
 
         val response = OkHttpClient().newCall(request).execute()
-        if (!response.isSuccessful) throw Exception("Upload failed: ${response.code()}")
+        if (!response.isSuccessful) throw Exception("Upload failed: ${response.code}")
 
-        val json = JSONObject(response.body()?.string() ?: "")
+        val responseBody = response.body?.string()
+        if (responseBody == null) throw Exception("Empty response body")
+        
+        val json = JSONObject(responseBody)
         return json.getString("secure_url")
     }
 

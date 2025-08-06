@@ -25,12 +25,13 @@
             android:visibility="gone"/>
 
         <ImageView
+            android:id="@+id/checkmarkIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_check"
             android:visibility="gone"
-            android:tint="@android:color/white"/>
+            android:tint="@color/white"/>
 
     </FrameLayout>
 

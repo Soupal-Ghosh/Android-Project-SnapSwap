@@ -59,7 +59,9 @@ class GalleryAdapter(
                 .apply(options)
                 .into(galleryImageView)
 
-            checkmarkView.visibility = if (selectedPhotos.contains(uri)) View.VISIBLE else View.GONE
+            val isSelected = selectedPhotos.contains(uri)
+            checkmarkView.visibility = if (isSelected) View.VISIBLE else View.GONE
+            itemView.findViewById<ImageView>(R.id.checkmarkIcon).visibility = if (isSelected) View.VISIBLE else View.GONE
         }
     }
 
@@ -74,4 +76,4 @@ class GalleryAdapter(
             return oldItem == newItem
         }
     }
-} 
+}

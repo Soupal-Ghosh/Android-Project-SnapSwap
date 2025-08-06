@@ -60,6 +60,14 @@
             android:layout_marginBottom="16dp" />
     </LinearLayout>
 
+    <!-- Loading ProgressBar -->
+    <ProgressBar
+        android:id="@+id/loadingProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
     <!-- Gallery RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -100,14 +108,6 @@
             android:layout_marginHorizontal="16dp"
             android:contentDescription="Add Photo"
             android:src="@drawable/ic_add" />
-
-        <!--<com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabAddPhoto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:contentDescription="Add Photo"
-            android:src="@drawable/ic_add" />-->
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabDislikedPhotos"
