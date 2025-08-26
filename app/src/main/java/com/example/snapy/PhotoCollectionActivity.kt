@@ -14,7 +14,7 @@ import java.io.File
 
 class PhotoCollectionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPhotoCollectionBinding
-    private lateinit var adapter: GridPhotoAdapter<Photo>
+    private lateinit var adapter: GridPhotoAdapter
     private var collectionType: String = ""
     private val photos = mutableListOf<Photo>()
 

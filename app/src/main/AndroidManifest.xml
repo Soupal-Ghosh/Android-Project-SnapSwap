@@ -58,6 +58,9 @@
             android:name=".PhotoCollectionActivity"
             android:exported="true"
             android:theme="@style/Theme.Snapy" />
+        <activity android:name=".LikedPhotosActivity" />
+        <activity android:name=".DislikedPhotosActivity" />
+
 
 
         <activity

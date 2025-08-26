@@ -1,5 +1,7 @@
 package com.example.snapy
 
+import android.app.Dialog
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +12,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,17 +38,37 @@ class PhotoAdapter(
             itemView.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    onPhotoClick(getItem(position))
+                    val photo = getItem(position)
+                    onPhotoClick(photo) // callback in case you want to use it elsewhere
+
+                    // Fullscreen dialog
+                    val dialog = Dialog(itemView.context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+                    val fullImageView = ImageView(itemView.context).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        setBackgroundColor(Color.BLACK)
+                    }
+
+                    if (photo.imageUri != null) {
+                        Glide.with(itemView.context).load(photo.imageUri).into(fullImageView)
+                    } else if (photo.imageResId != 0) {
+                        Glide.with(itemView.context).load(photo.imageResId).into(fullImageView)
+                    }
+
+                    fullImageView.setOnClickListener { dialog.dismiss() }
+                    dialog.setContentView(fullImageView)
+                    dialog.show()
                 }
             }
         }
 
         fun bind(photo: Photo) {
-            // Load image
-            val options = RequestOptions()
-                .centerCrop()
-                .dontAnimate()
+            val options = RequestOptions().centerCrop().dontAnimate()
 
+            // Load image into ImageView
             if (photo.imageUri != null) {
                 Glide.with(itemView.context)
                     .load(photo.imageUri)
@@ -58,20 +81,21 @@ class PhotoAdapter(
                     .into(photoImageView)
             }
 
-            // Format and set the date
+            // Show date below photo
+            val dateToShow = if (photo.dateTaken > 0L) {
+                Date(photo.dateTaken)
+            } else {
+                val file = File(photo.imageUri?.path ?: "")
+                Date(file.lastModified())
+            }
+
             val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-            val formattedDate = formatter.format(Date(photo.dateTaken))
-            photoDateTextView.text = formattedDate
+            photoDateTextView.text = formatter.format(dateToShow)
         }
     }
 
     private class PhotoDiffCallback : DiffUtil.ItemCallback<Photo>() {
-        override fun areItemsTheSame(oldItem: Photo, newItem: Photo): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: Photo, newItem: Photo): Boolean {
-            return oldItem == newItem
-        }
+        override fun areItemsTheSame(oldItem: Photo, newItem: Photo) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Photo, newItem: Photo) = oldItem == newItem
     }
 }
