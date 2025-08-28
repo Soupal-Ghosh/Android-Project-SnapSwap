@@ -221,15 +221,23 @@ class PhotoSwipeActivity : AppCompatActivity() {
 
     private fun addSelectedImagesToPhotos(uris: List<Uri>) {
         try {
+            // Clear current photos and replace with selected ones
+            photos.clear()
+
             val newPhotos = uris.mapIndexed { index, uri ->
-                val newId = (photos.maxOfOrNull { it.id } ?: 0) + index + 1
-                Photo(id = newId, imageUri = uri, dateTaken = System.currentTimeMillis())
+                Photo(
+                    id = index + 1,
+                    imageUri = uri,
+                    dateTaken = System.currentTimeMillis()
+                )
             }
+
             photos.addAll(newPhotos)
             photoAdapter.submitList(photos.toList())
-            Toast.makeText(this, "${newPhotos.size} images added to swiping", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${newPhotos.size} images selected for swiping", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(this, "Error adding images: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
+
 }
