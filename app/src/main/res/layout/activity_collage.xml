@@ -14,13 +14,19 @@
         app:layout_constraintBottom_toTopOf="@id/shareButton"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/shareButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Share Collage"
-        android:backgroundTint="@color/purplish_pink"
+        android:textColor="@android:color/white"
+
+        app:backgroundTint="@android:color/black"
+        app:strokeColor="@color/purplish_pink"
+        app:strokeWidth="2dp"
+        app:cornerRadius="12dp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

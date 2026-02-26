@@ -16,7 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
-            android:text="Welcome to Snapy"
+            android:text="Welcome to Snapy !"
             android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -27,10 +27,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:padding="16dp"
+            app:backgroundTint="@android:color/black"
+            app:strokeColor="@color/purplish_pink"
             android:text="Photo Swipe"
             android:textColor="@color/white"
             android:textSize="18sp"
-            app:backgroundTint="@color/purplish_pink"
             app:cornerRadius="8dp"
             app:strokeWidth="2dp" />
 
@@ -40,10 +41,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:padding="16dp"
+            app:backgroundTint="@android:color/black"
+            app:strokeColor="@color/purplish_pink"
             android:text="AI Photo Categorization"
             android:textColor="@color/white"
             android:textSize="18sp"
-            app:backgroundTint="@color/purplish_pink"
             app:cornerRadius="8dp"
             app:strokeWidth="2dp" />
 
@@ -53,9 +55,10 @@
             android:layout_height="wrap_content"
             android:padding="16dp"
             android:text="Photo Collage"
+            app:backgroundTint="@android:color/black"
+            app:strokeColor="@color/purplish_pink"
             android:textColor="@color/white"
             android:textSize="18sp"
-            app:backgroundTint="@color/purplish_pink"
             app:cornerRadius="8dp"
             app:strokeWidth="2dp" />
 
