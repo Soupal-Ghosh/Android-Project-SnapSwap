@@ -3,19 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="@color/cat_base">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent">
+        android:background="@color/cat_mantle"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Snapy"
-            app:titleTextColor="@color/white"
+            app:titleTextColor="@color/cat_text"
+            app:titleTextAppearance="@style/TextAppearance.Snapy.Headline"
             app:popupTheme="@style/Theme.Snapy.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -29,7 +31,7 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="8dp"
+            android:padding="12dp"
             android:clipToPadding="false"
             android:layoutAnimation="@anim/layout_animation_fall_down" />
 
@@ -39,23 +41,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="No photos found."
-            android:textColor="@color/text_secondary"
+            android:text="Quiet night in the gallery."
+            android:textColor="@color/cat_overlay1"
             android:textSize="16sp"
             android:visibility="gone"/>
 
     </FrameLayout>
 
-    <!-- Liked/Disliked Buttons (Social Style Floating Bar) -->
+    <!-- Floating Actions (Cozy Pill Bar) -->
     <LinearLayout
         android:id="@+id/likedButtonsLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="40dp"
         android:background="@drawable/bg_glass_card"
+        android:elevation="12dp"
         android:orientation="horizontal"
-        android:padding="8dp"
+        android:padding="10dp"
         android:visibility="gone">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -64,8 +67,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:src="@drawable/ic_undo"
-            app:backgroundTint="@color/surface_dark"
-            app:tint="@color/primary_purple"
+            app:backgroundTint="@color/cat_surface0"
+            app:tint="@color/lavender_pink"
             app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -73,8 +76,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_share"
-            app:backgroundTint="@color/primary_purple"
-            app:tint="@color/white"
+            app:backgroundTint="@color/lavender_pink"
+            app:tint="@color/cat_base"
             app:fabSize="mini" />
     </LinearLayout>
 
@@ -83,10 +86,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="40dp"
         android:background="@drawable/bg_glass_card"
+        android:elevation="12dp"
         android:orientation="horizontal"
-        android:padding="8dp"
+        android:padding="10dp"
         android:visibility="gone">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -95,8 +99,8 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:src="@drawable/ic_undo"
-            app:backgroundTint="@color/surface_dark"
-            app:tint="@color/secondary_pink"
+            app:backgroundTint="@color/cat_surface0"
+            app:tint="@color/cat_rosewater"
             app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -104,8 +108,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_delete"
-            app:backgroundTint="@color/secondary_pink"
-            app:tint="@color/white"
+            app:backgroundTint="@color/cat_red"
+            app:tint="@color/cat_base"
             app:fabSize="mini" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

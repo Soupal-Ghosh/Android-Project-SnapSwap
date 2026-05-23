@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="@color/cat_base">
 
     <View
         android:id="@+id/headerBg"
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:background="@drawable/gradient_purple_pink"
+        android:background="@color/cat_mantle"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -18,44 +18,43 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
         android:text="AI Vision"
-        android:textColor="@color/white"
-        android:textSize="36sp"
-        android:textStyle="bold"
+        android:textColor="@color/cat_text"
+        android:textSize="32sp"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.card.MaterialCardView
+        style="@style/Widget.Snapy.CardView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="40dp"
-        app:cardBackgroundColor="@color/surface_dark"
-        app:cardCornerRadius="32dp"
-        app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleTextView">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="20dp">
+            android:padding="24dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelectPhotos"
                 style="@style/Widget.Snapy.Button"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Select Photos"
-                android:textSize="18sp"
-                app:backgroundTint="@color/primary_purple"
+                android:text="Select Archives"
+                android:textSize="16sp"
+                app:backgroundTint="@color/lavender_pink"
+                android:textColor="@color/cat_base"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="20dp"
                 android:clipToPadding="false"
                 android:layoutAnimation="@anim/layout_animation_fall_down"
                 app:layout_constraintBottom_toTopOf="@id/btnStartCategorization"
@@ -66,10 +65,11 @@
                 style="@style/Widget.Snapy.Button"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginBottom="10dp"
-                android:text="Analyze with AI"
-                android:textSize="18sp"
-                app:backgroundTint="@color/secondary_pink"
+                android:layout_marginBottom="12dp"
+                android:text="Begin Process"
+                android:textSize="16sp"
+                app:backgroundTint="@color/cat_peach"
+                android:textColor="@color/cat_base"
                 app:layout_constraintBottom_toBottomOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -80,7 +80,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:indeterminateTint="@color/accent_cyan"
+        android:indeterminateTint="@color/cat_lavender"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -14,14 +14,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.snapy.databinding.ActivityPhotoCollectionBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class PhotoCollectionActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPhotoCollectionBinding
@@ -45,14 +45,14 @@ class PhotoCollectionActivity : AppCompatActivity() {
                 photos.addAll(PhotoSwipeActivity.likedPhotos)
                 setupRecyclerView()
                 setupButtons()
-                adapter.submitList(photos)
+                displayPhotos(photos)
                 binding.toolbar.title = "Liked Photos"
             }
             "disliked" -> {
                 photos.addAll(PhotoSwipeActivity.dislikedPhotos)
                 setupRecyclerView()
                 setupButtons()
-                adapter.submitList(photos)
+                displayPhotos(photos)
                 binding.toolbar.title = "Trash"
             }
             else -> {
@@ -112,11 +112,11 @@ class PhotoCollectionActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 photos.clear()
                 photos.addAll(loadedPhotos)
-                adapter.submitList(photos.toList())
+                displayPhotos(photos)
 
                 if (photos.isEmpty()) {
                     binding.emptyStateText.visibility = View.VISIBLE
-                    binding.emptyStateText.text = "No photos found on device."
+                    binding.emptyStateText.text = "Quiet night in the gallery."
                 } else {
                     binding.emptyStateText.visibility = View.GONE
                 }
@@ -143,17 +143,58 @@ class PhotoCollectionActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = GridPhotoAdapter { photo ->
-            val intent = Intent(this, ImageViewerActivity::class.java).apply {
-                putExtra("imageUri", photo.imageUri.toString())  // send as String
+        adapter = GridPhotoAdapter(
+            onPhotoClick = { photo ->
+                val intent = Intent(this, ImageViewerActivity::class.java).apply {
+                    putExtra("imageUri", photo.imageUri.toString())
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
-        }
+        )
+
+        // Using StaggeredGridLayoutManager for Pinterest-style dynamic heights
+        val layoutManager = StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
 
         binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(this@PhotoCollectionActivity, 3)
-            adapter = this@PhotoCollectionActivity.adapter
+            this.layoutManager = layoutManager
+            this.adapter = this@PhotoCollectionActivity.adapter
         }
+    }
+
+    private fun displayPhotos(photosList: List<Photo>) {
+        val groupedItems = groupPhotosByDate(photosList)
+        adapter.submitList(groupedItems)
+    }
+
+    private fun groupPhotosByDate(photosList: List<Photo>): List<GalleryItem> {
+        val sortedPhotos = photosList.sortedByDescending { it.dateTaken }
+        val galleryItems = mutableListOf<GalleryItem>()
+        
+        val today = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
+        val yesterday = today - 86400000
+        val thisWeek = today - (86400000 * 7)
+
+        var currentGroup = ""
+
+        sortedPhotos.forEach { photo ->
+            val dateTaken = photo.dateTaken
+            val groupTitle = when {
+                dateTaken >= today -> "Today"
+                dateTaken >= yesterday -> "Yesterday"
+                dateTaken >= thisWeek -> "This Week"
+                else -> {
+                    val sdf = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+                    sdf.format(Date(dateTaken))
+                }
+            }
+
+            if (groupTitle != currentGroup) {
+                galleryItems.add(GalleryItem.Header(groupTitle))
+                currentGroup = groupTitle
+            }
+            galleryItems.add(GalleryItem.PhotoItem(photo))
+        }
+        return galleryItems
     }
 
 
@@ -171,7 +212,7 @@ class PhotoCollectionActivity : AppCompatActivity() {
                     if (photos.isNotEmpty()) {
                         val last = photos.removeAt(photos.size - 1)
                         PhotoSwipeActivity.likedPhotos.remove(last)
-                        adapter.submitList(photos.toList())
+                        displayPhotos(photos)
                         Toast.makeText(this, "Moved back to gallery", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -190,7 +231,7 @@ class PhotoCollectionActivity : AppCompatActivity() {
                     if (photos.isNotEmpty()) {
                         val last = photos.removeAt(photos.size - 1)
                         PhotoSwipeActivity.dislikedPhotos.remove(last)
-                        adapter.submitList(photos.toList())
+                        displayPhotos(photos)
                         Toast.makeText(this, "Moved back to gallery", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -248,7 +289,7 @@ class PhotoCollectionActivity : AppCompatActivity() {
             .setPositiveButton("Delete") { _, _ ->
                 PhotoSwipeActivity.dislikedPhotos.clear()
                 photos.clear()
-                adapter.submitList(photos.toList())
+                displayPhotos(photos)
                 Toast.makeText(this, "Trash cleared", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)

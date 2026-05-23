@@ -4,13 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="@color/cat_base">
 
     <View
-        android:id="@+id/headerGradient"
+        android:id="@+id/headerBg"
         android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:background="@drawable/gradient_purple_pink"
+        android:layout_height="250dp"
+        android:background="@color/cat_mantle"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -18,10 +18,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="60dp"
-        android:text="Create Collage"
-        android:textColor="@color/white"
+        android:text="Cozy Scrapbook"
+        android:textColor="@color/cat_text"
         android:textSize="32sp"
-        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -31,10 +31,10 @@
         style="@style/Widget.Snapy.CardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        app:layout_constraintTop_toBottomOf="@id/headerGradient"
+        android:layout_margin="24dp"
+        app:layout_constraintTop_toBottomOf="@id/headerBg"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.2">
+        app:layout_constraintVertical_bias="0.1">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -47,18 +47,21 @@
                 style="@style/Widget.Snapy.Button"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Select Photos"
-                android:textSize="18sp"
+                android:text="Select Memories"
+                android:textSize="16sp"
+                app:backgroundTint="@color/lavender_pink"
+                android:textColor="@color/cat_base"
                 app:icon="@drawable/ic_add"
-                app:iconGravity="textStart" />
+                app:iconGravity="textStart"
+                app:iconTint="@color/cat_base" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/selectedPhotosRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:clipToPadding="false"
-                android:minHeight="100dp"
+                android:minHeight="120dp"
                 android:orientation="horizontal"
                 android:visibility="gone"
                 tools:listitem="@layout/item_collage_photo" />
@@ -68,16 +71,20 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:hint="Vibe (e.g. Party, Travel)"
-                app:boxStrokeColor="@color/accent_cyan"
-                app:hintTextColor="@color/accent_cyan">
+                android:layout_marginTop="24dp"
+                android:hint="Album Vibe"
+                app:boxStrokeColor="@color/cat_lavender"
+                app:hintTextColor="@color/cat_lavender"
+                app:boxCornerRadiusTopStart="16dp"
+                app:boxCornerRadiusTopEnd="16dp"
+                app:boxCornerRadiusBottomStart="16dp"
+                app:boxCornerRadiusBottomEnd="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/collageTypeEditText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/white" />
+                    android:textColor="@color/cat_text" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -85,10 +92,11 @@
                 style="@style/Widget.Snapy.Button"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginTop="24dp"
-                android:text="Create Magic"
-                android:textSize="18sp"
-                app:backgroundTint="@color/secondary_pink" />
+                android:layout_marginTop="32dp"
+                android:text="Assemble Memories"
+                android:textSize="16sp"
+                app:backgroundTint="@color/cat_peach"
+                android:textColor="@color/cat_base" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -98,7 +106,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:indeterminateTint="@color/accent_cyan"
+        android:indeterminateTint="@color/cat_lavender"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

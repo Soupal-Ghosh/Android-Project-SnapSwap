@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark">
+    android:background="@color/cat_base">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBar"
@@ -16,8 +16,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Your Masterpiece"
-            app:titleTextColor="@color/white" />
+            app:title="Memory Print"
+            app:titleTextColor="@color/cat_text"
+            app:titleTextAppearance="@style/TextAppearance.Snapy.Headline" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <com.google.android.material.card.MaterialCardView
@@ -31,14 +32,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/appBar">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/collageImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:adjustViewBounds="true"
-            android:padding="12dp"
+            android:padding="20dp"
             android:scaleType="fitCenter"
-            android:contentDescription="Collage Preview" />
+            android:contentDescription="Final Print"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Snapy.RoundedPhotos" />
     </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
@@ -57,27 +59,30 @@
             android:layout_height="60dp"
             android:layout_weight="1"
             android:text="Back"
-            android:textColor="@color/text_secondary" />
+            android:textColor="@color/cat_subtext1"
+            android:letterSpacing="0.1" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnShare"
             style="@style/Widget.Snapy.Button"
             android:layout_width="0dp"
             android:layout_height="60dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:text="Share"
-            app:backgroundTint="@color/primary_purple" />
+            app:backgroundTint="@color/lavender_pink"
+            android:textColor="@color/cat_base" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             style="@style/Widget.Snapy.Button"
             android:layout_width="0dp"
             android:layout_height="60dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:text="Save"
-            app:backgroundTint="@color/secondary_pink" />
+            app:backgroundTint="@color/cat_mauve"
+            android:textColor="@color/cat_base" />
 
     </LinearLayout>
 
