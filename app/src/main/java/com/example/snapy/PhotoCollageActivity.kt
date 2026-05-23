@@ -1,7 +1,6 @@
 package com.example.snapy
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -10,15 +9,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -27,9 +23,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 
@@ -54,13 +47,9 @@ class PhotoCollageActivity : AppCompatActivity() {
         ActivityResultContracts.GetMultipleContents()
     ) { uris ->
         if (uris.isNotEmpty()) {
-            selectedPhotos.clear()
             selectedPhotos.addAll(uris)
             selectedPhotosRecyclerView.visibility = View.VISIBLE
             collagePhotoAdapter.updatePhotos(selectedPhotos)
-            Toast.makeText(this, "Selected ${uris.size} photos", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "No photos selected", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -71,6 +60,16 @@ class PhotoCollageActivity : AppCompatActivity() {
         setupViews()
         setupRecyclerView()
         setupClickListeners()
+        
+        // Handle photos passed from intent (e.g. from Gallery)
+        intent.getParcelableArrayListExtra<Photo>("photos")?.let { photos ->
+            val uris = photos.mapNotNull { it.imageUri }
+            if (uris.isNotEmpty()) {
+                selectedPhotos.addAll(uris)
+                selectedPhotosRecyclerView.visibility = View.VISIBLE
+                collagePhotoAdapter.updatePhotos(selectedPhotos)
+            }
+        }
     }
 
     private fun setupViews() {
@@ -84,13 +83,15 @@ class PhotoCollageActivity : AppCompatActivity() {
             if (position in selectedPhotos.indices) {
                 selectedPhotos.removeAt(position)
                 collagePhotoAdapter.removePhoto(position)
+                if (selectedPhotos.isEmpty()) {
+                    selectedPhotosRecyclerView.visibility = View.GONE
+                }
             }
         }
 
         selectedPhotosRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@PhotoCollageActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = collagePhotoAdapter
-            setHasFixedSize(false)
         }
     }
 
@@ -100,17 +101,11 @@ class PhotoCollageActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.btnCreateCollage).setOnClickListener {
-            when {
-                selectedPhotos.isEmpty() -> {
-                    Toast.makeText(this, "Please select at least one photo", Toast.LENGTH_SHORT).show()
-                }
-                collageTypeEditText.text.isNullOrEmpty() -> {
-                    Toast.makeText(this, "Please enter a collage type", Toast.LENGTH_SHORT).show()
-                }
-                else -> {
-                    createCollage(collageTypeEditText.text.toString())
-                }
+            if (selectedPhotos.isEmpty()) {
+                Toast.makeText(this, "Please select at least one photo", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            createCollage(collageTypeEditText.text.toString())
         }
     }
 
@@ -121,13 +116,10 @@ class PhotoCollageActivity : AppCompatActivity() {
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
 
-        when {
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                pickImagesLauncher.launch("image/*")
-            }
-            else -> {
-                requestPermissionLauncher.launch(permission)
-            }
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+            pickImagesLauncher.launch("image/*")
+        } else {
+            requestPermissionLauncher.launch(permission)
         }
     }
 
@@ -137,15 +129,12 @@ class PhotoCollageActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val quote = generateQuote(collageType)
-                val collageUri = createCollageWithQuote(selectedPhotos, quote)
-
-                val collageBitmap = BitmapFactory.decodeFile(collageUri.path)
+                val finalBitmap = createCollageWithQuote(selectedPhotos, quote)
 
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE
-                    CollagePreviewActivity.finalCollageBitmap = collageBitmap
-                    val intent = Intent(this@PhotoCollageActivity, CollagePreviewActivity::class.java)
-                    startActivity(intent)
+                    CollagePreviewActivity.finalCollageBitmap = finalBitmap
+                    startActivity(Intent(this@PhotoCollageActivity, CollagePreviewActivity::class.java))
                 }
 
             } catch (e: Exception) {
@@ -157,7 +146,6 @@ class PhotoCollageActivity : AppCompatActivity() {
         }
     }
 
-
     private fun generateQuote(collageType: String): String {
         val quotes = when (collageType.lowercase()) {
             "birthday" -> listOf("🎉 Happy Birthday!", "🎂 Enjoy your day!", "🎈 Wishing joy!")
@@ -168,20 +156,13 @@ class PhotoCollageActivity : AppCompatActivity() {
         return quotes.random()
     }
 
-    private fun createCollageWithQuote(photos: List<Uri>, quote: String): Uri {
+    private fun createCollageWithQuote(photos: List<Uri>, quote: String): Bitmap {
         val collageBitmap = when (photos.size) {
             1 -> loadBitmapFromUri(photos[0])
             2 -> createSideBySide(photos[0], photos[1])
-            3, 4 -> createGridCollage(photos.take(4))
-            else -> {
-                runOnUiThread {
-                    Toast.makeText(this, "Only the first 4 photos will be used for the collage.", Toast.LENGTH_SHORT).show()
-                }
-                createGridCollage(photos.take(4))
-            }
+            else -> createGridCollage(photos.take(4))
         }
-        val finalBitmap = addQuote(collageBitmap, quote)
-        return Uri.fromFile(saveBitmap(finalBitmap))
+        return addQuote(collageBitmap, quote)
     }
 
     private fun createSideBySide(uri1: Uri, uri2: Uri): Bitmap {
@@ -194,26 +175,34 @@ class PhotoCollageActivity : AppCompatActivity() {
         val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         canvas.drawBitmap(bmp1, 0f, 0f, null)
-        canvas.drawBitmap(bmp2, bmp1.width.toFloat(), 0f, null)
+        canvas.drawBitmap(bmp2, bmp1.width.toFloat(), (height - bmp2.height) / 2f, null)
         return result
     }
 
     private fun createGridCollage(photos: List<Uri>): Bitmap {
-        // 2x2 grid
-        val bitmaps = photos.mapNotNull {
-            try { loadBitmapFromUri(it) } catch (e: Exception) { null }
-        }
-        val cellSize = 600
+        val bitmaps = photos.map { loadBitmapFromUri(it) }
+        val cellSize = 800
         val gridSize = 2
         val size = cellSize * gridSize
         val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         canvas.drawColor(android.graphics.Color.BLACK)
+        
         for (i in bitmaps.indices) {
-            val bmp = Bitmap.createScaledBitmap(bitmaps[i], cellSize, cellSize, true)
+            val originalBmp = bitmaps[i]
+            // Center crop scaling
+            val scale = cellSize.toFloat() / minOf(originalBmp.width, originalBmp.height)
+            val scaledWidth = (originalBmp.width * scale).toInt()
+            val scaledHeight = (originalBmp.height * scale).toInt()
+            val scaledBmp = Bitmap.createScaledBitmap(originalBmp, scaledWidth, scaledHeight, true)
+            
+            val cropX = (scaledWidth - cellSize) / 2
+            val cropY = (scaledHeight - cellSize) / 2
+            val finalCellBmp = Bitmap.createBitmap(scaledBmp, cropX, cropY, cellSize, cellSize)
+
             val row = i / gridSize
             val col = i % gridSize
-            canvas.drawBitmap(bmp, (col * cellSize).toFloat(), (row * cellSize).toFloat(), null)
+            canvas.drawBitmap(finalCellBmp, (col * cellSize).toFloat(), (row * cellSize).toFloat(), null)
         }
         return result
     }
@@ -223,74 +212,18 @@ class PhotoCollageActivity : AppCompatActivity() {
         val canvas = Canvas(result)
         val paint = Paint().apply {
             color = android.graphics.Color.WHITE
-            textSize = 60f
+            textSize = bitmap.height / 15f
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
             setShadowLayer(10f, 0f, 0f, android.graphics.Color.BLACK)
         }
-        canvas.drawText(quote, bitmap.width / 2f, bitmap.height - 100f, paint)
+        canvas.drawText(quote, bitmap.width / 2f, bitmap.height - (bitmap.height / 20f), paint)
         return result
     }
 
     private fun loadBitmapFromUri(uri: Uri): Bitmap {
-        contentResolver.openInputStream(uri)?.use {
-            return BitmapFactory.decodeStream(it)
-        }
-        throw IllegalArgumentException("Failed to decode bitmap from URI: $uri")
-    }
-
-    private fun saveBitmap(bitmap: Bitmap): File {
-        val file = File(getExternalFilesDir(null), "collage_${System.currentTimeMillis()}.jpg")
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        }
-        return file
-    }
-
-    private suspend fun uploadImageToCloudinary(context: Context, uri: Uri): String {
-        val cloudName = "dntby7zeo"
-        val uploadPreset = "SNAPSWAP"
-
-        val inputStream = context.contentResolver.openInputStream(uri)
-            ?: throw Exception("Cannot open input stream")
-        val fileBytes = inputStream.readBytes()
-        inputStream.close()
-
-        val mediaType = "image/jpeg".toMediaTypeOrNull()
-            ?: throw Exception("Invalid media type")
-
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "file", "image.jpg",
-                RequestBody.create(mediaType, fileBytes)
-            )
-            .addFormDataPart("upload_preset", uploadPreset)
-            .build()
-
-        val request = Request.Builder()
-            .url("https://api.cloudinary.com/v1_1/$cloudName/image/upload")
-            .post(requestBody)
-            .build()
-
-        val response = OkHttpClient().newCall(request).execute()
-        if (!response.isSuccessful) throw Exception("Upload failed: ${response.code}")
-
-        val responseBody = response.body?.string()
-        if (responseBody == null) throw Exception("Empty response body")
-        
-        val json = JSONObject(responseBody)
-        return json.getString("secure_url")
-    }
-
-    private fun showCollageResult(imageUrl: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(imageUrl))
-        startActivity(intent)
-
-        android.app.AlertDialog.Builder(this)
-            .setTitle("Your Collage")
-            .setMessage("Uploaded to Cloudinary!\n\n$imageUrl")
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .show()
+        return contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it)
+        } ?: throw IllegalArgumentException("Failed to decode bitmap from URI: $uri")
     }
 }

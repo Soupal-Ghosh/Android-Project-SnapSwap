@@ -21,7 +21,6 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.*
 import java.io.File
@@ -33,7 +32,7 @@ class PhotoSwipeActivity : AppCompatActivity() {
         val dislikedPhotos = mutableListOf<Photo>()
     }
 
-    private lateinit var onboardingContainer: LinearLayout
+    private lateinit var onboardingContainer: View
     private lateinit var line1: TextView
     private lateinit var line2: TextView
     private lateinit var line3: TextView
@@ -50,7 +49,6 @@ class PhotoSwipeActivity : AppCompatActivity() {
     private lateinit var photoAdapter: PhotoAdapter
 
     private val PERMISSION_REQUEST_CODE = 123
-    private val PICK_IMAGES_REQUEST_CODE = 456
 
     // Activity result launcher for picking multiple images
     private val pickImagesLauncher = registerForActivityResult(
@@ -97,11 +95,6 @@ class PhotoSwipeActivity : AppCompatActivity() {
     }
 
     private fun showTextOnboarding() {
-        line1.text = "Here we categorise pictures which helps cleaning your gallery and file selection seamless with just a bunch of swipes"
-        line2.text = "Click left to dislike and right to like. Tap anywhere to begin!"
-        line3.text = " *👍 stores liked images"
-        line4.text = " *👎 stores disliked images"
-
         val textViews = listOf(line1, line2, line3, line4)
         val animationDuration = 600L
         val delayIncrement = 200L
@@ -207,11 +200,19 @@ class PhotoSwipeActivity : AppCompatActivity() {
         fabAddPhoto.visibility = View.VISIBLE
 
         fabLikedPhotos.setOnClickListener {
-            startActivity(Intent(this, LikedPhotosActivity::class.java))
+            val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
+                putExtra("type", "liked")
+                putParcelableArrayListExtra("photos", ArrayList(likedPhotos))
+            }
+            startActivity(intent)
         }
 
         fabDislikedPhotos.setOnClickListener {
-            startActivity(Intent(this, DislikedPhotosActivity::class.java))
+            val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
+                putExtra("type", "disliked")
+                putParcelableArrayListExtra("photos", ArrayList(dislikedPhotos))
+            }
+            startActivity(intent)
         }
 
         fabAddPhoto.setOnClickListener {
@@ -239,5 +240,4 @@ class PhotoSwipeActivity : AppCompatActivity() {
             Toast.makeText(this, "Error adding images: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
-
 }

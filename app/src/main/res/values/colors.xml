@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark background color for the whole activity -->
-    <color name="dark_background">#2C003E</color> <!-- Dark Purple background -->
+    <!-- AMOLED Dark Theme Colors -->
+    <color name="background_dark">#0D0D0D</color>
+    <color name="surface_dark">#1A1A1A</color>
+    <color name="card_background">#262626</color>
 
-    <!-- Purplish-Pink colors for buttons -->
-    <color name="purplish_pink">#9C27B0</color> <!-- Purple-Pink color for buttons -->
-    <color name="purplish_pink_dark">#7B1FA2</color> <!-- Darker purplish-pink for disabled buttons -->
+    <color name="primary_purple">#8A2BE2</color>
+    <color name="secondary_pink">#FF1493</color>
+    <color name="accent_cyan">#00E5FF</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0B0</color>
+
+    <!-- Translucent/Glass Colors -->
+    <color name="glass_white">#1AFFFFFF</color>
+    <color name="glass_purple">#338A2BE2</color>
+
+    <!-- Legacy / Compatibility (Mapped to new palette) -->
+    <color name="dark_background">#0D0D0D</color>
+    <color name="purplish_pink">#FF1493</color>
+    <color name="purplish_pink_dark">#C71585</color>
 
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="purple_500">#8A2BE2</color>
+    <color name="purple_700">#7B1FA2</color>
+    <color name="teal_200">#00E5FF</color>
+    <color name="teal_700">#018786</color>
     <color name="gray">#757575</color>
 </resources>

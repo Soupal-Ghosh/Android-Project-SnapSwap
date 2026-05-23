@@ -1,85 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bglogin_snapswap"
-    android:padding="16dp">
+    android:background="@color/background_dark">
+
+    <View
+        android:id="@+id/headerGradient"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:background="@drawable/gradient_purple_pink"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/titleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Photo Collage"
+        android:layout_marginTop="60dp"
+        android:text="Create Collage"
         android:textColor="@color/white"
-        android:textSize="24sp"
+        android:textSize="32sp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSelectPhotos"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/controlsCard"
+        style="@style/Widget.Snapy.CardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Select Photos"
-        android:textColor="@android:color/white"
+        android:layout_margin="20dp"
+        app:layout_constraintTop_toBottomOf="@id/headerGradient"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.2">
 
-        app:backgroundTint="@android:color/black"
-        app:strokeColor="@color/purplish_pink"
-        app:strokeWidth="2dp"
-        app:cornerRadius="12dp"
-        app:layout_constraintTop_toBottomOf="@id/titleTextView" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/selectedPhotosRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="16dp"
-        android:background="#33FFFFFF"
-        android:clipToPadding="false"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@id/btnSelectPhotos" />
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/collageTypeLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="Collage Type (e.g., Birthday, Travel, Family)"
-        app:layout_constraintTop_toBottomOf="@id/selectedPhotosRecyclerView">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/collageTypeEditText"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:orientation="vertical"
+            android:padding="24dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCreateCollage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Create Collage"
-        android:textColor="@color/white"
-        app:backgroundTint="@android:color/black"
-        app:strokeColor="@color/purplish_pink"
-        app:strokeWidth="2dp"
-        app:cornerRadius="12dp"
-        app:layout_constraintTop_toBottomOf="@id/collageTypeLayout" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectPhotos"
+                style="@style/Widget.Snapy.Button"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Select Photos"
+                android:textSize="18sp"
+                app:icon="@drawable/ic_add"
+                app:iconGravity="textStart" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/selectedPhotosRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:clipToPadding="false"
+                android:minHeight="100dp"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:listitem="@layout/item_collage_photo" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/collageTypeLayout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:hint="Vibe (e.g. Party, Travel)"
+                app:boxStrokeColor="@color/accent_cyan"
+                app:hintTextColor="@color/accent_cyan">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/collageTypeEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCreateCollage"
+                style="@style/Widget.Snapy.Button"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="24dp"
+                android:text="Create Magic"
+                android:textSize="18sp"
+                app:backgroundTint="@color/secondary_pink" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:indeterminateTint="@color/accent_cyan"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>
