@@ -17,7 +17,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class PhotoAdapter(
-    private val onPhotoClick: (Photo) -> Unit
+    private val onPhotoClick: (Photo) -> Unit,
+    private val onPhotoLongClick: ((Photo) -> Unit)? = null
 ) : ListAdapter<Photo, PhotoAdapter.PhotoViewHolder>(PhotoDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
@@ -33,35 +34,24 @@ class PhotoAdapter(
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val photoImageView: ImageView = itemView.findViewById(R.id.photoImageView)
         private val photoDateTextView: TextView = itemView.findViewById(R.id.photoDateTextView)
+        private val ivFavorite: ImageView = itemView.findViewById(R.id.ivFavorite)
 
         init {
             itemView.setOnClickListener {
                 val position = bindingAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val photo = getItem(position)
-                    onPhotoClick(photo) // callback in case you want to use it elsewhere
-
-                    // Fullscreen dialog
-                    val dialog = Dialog(itemView.context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-                    val fullImageView = ImageView(itemView.context).apply {
-                        layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        scaleType = ImageView.ScaleType.FIT_CENTER
-                        setBackgroundColor(Color.BLACK)
-                    }
-
-                    if (photo.imageUri != null) {
-                        Glide.with(itemView.context).load(photo.imageUri).into(fullImageView)
-                    } else if (photo.imageResId != 0) {
-                        Glide.with(itemView.context).load(photo.imageResId).into(fullImageView)
-                    }
-
-                    fullImageView.setOnClickListener { dialog.dismiss() }
-                    dialog.setContentView(fullImageView)
-                    dialog.show()
+                    onPhotoClick(photo)
                 }
+            }
+
+            itemView.setOnLongClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val photo = getItem(position)
+                    onPhotoLongClick?.invoke(photo)
+                    true
+                } else false
             }
         }
 
@@ -80,6 +70,8 @@ class PhotoAdapter(
                     .apply(options)
                     .into(photoImageView)
             }
+
+            ivFavorite.visibility = if (photo.isLiked) View.VISIBLE else View.GONE
 
             // Show date below photo
             val dateToShow = if (photo.dateTaken > 0L) {
