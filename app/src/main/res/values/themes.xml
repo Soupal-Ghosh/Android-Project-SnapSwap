@@ -1,9 +1,52 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.Snapy" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/lavender_pink</item>
+        <item name="colorSecondary">@color/lavender_pink_soft</item>
+        <item name="android:windowBackground">@color/cat_base</item>
+        <item name="android:statusBarColor">@color/cat_base</item>
+        <item name="android:navigationBarColor">@color/cat_base</item>
+
+        <!-- Typography -->
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Snapy.Headline</item>
     </style>
 
-    <style name="Theme.Snapy" parent="Base.Theme.Snapy" />
+    <style name="Theme.Snapy" parent="Base.Theme.Snapy">
+        <item name="materialButtonStyle">@style/Widget.Snapy.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.Snapy.CardView</item>
+    </style>
+
+    <style name="Widget.Snapy.Button" parent="Widget.Material3.Button">
+        <item name="cornerRadius">28dp</item> <!-- Pill Shape -->
+        <item name="backgroundTint">@color/cat_surface0</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/cat_text</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="rippleColor">@color/cat_surface1</item>
+    </style>
+
+    <style name="Widget.Snapy.CardView" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/cat_surface1</item>
+        <item name="cardCornerRadius">32dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="strokeColor">@color/lavender_pink</item>
+    </style>
+
+    <style name="TextAppearance.Snapy.Headline" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/cat_text</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Theme.Snapy.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.Snapy.PopupOverlay" parent="ThemeOverlay.Material3.DynamicColors.Dark">
+        <item name="android:colorBackground">@color/lavender_dirty_pink</item>
+        <item name="android:textColorPrimary">@color/white</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.Snapy.RoundedPhotos" parent="">
+        <item name="cornerSize">20dp</item>
+    </style>
 </resources>

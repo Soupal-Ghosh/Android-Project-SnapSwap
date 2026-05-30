@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.*
 import java.io.File
@@ -31,9 +31,11 @@ class PhotoSwipeActivity : AppCompatActivity() {
     companion object {
         val likedPhotos = mutableListOf<Photo>()
         val dislikedPhotos = mutableListOf<Photo>()
+        const val FOLDER_LIKED = "Favorites"
+        const val FOLDER_DISLIKED = "Trash"
     }
 
-    private lateinit var onboardingContainer: LinearLayout
+    private lateinit var onboardingContainer: View
     private lateinit var line1: TextView
     private lateinit var line2: TextView
     private lateinit var line3: TextView
@@ -48,9 +50,9 @@ class PhotoSwipeActivity : AppCompatActivity() {
     private var isOnboardingFinished = false
     private val photos = mutableListOf<Photo>()
     private lateinit var photoAdapter: PhotoAdapter
+    private lateinit var repository: PhotoRepository
 
     private val PERMISSION_REQUEST_CODE = 123
-    private val PICK_IMAGES_REQUEST_CODE = 456
 
     // Activity result launcher for picking multiple images
     private val pickImagesLauncher = registerForActivityResult(
@@ -67,6 +69,7 @@ class PhotoSwipeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_swipe)
 
+        repository = PhotoRepository(this)
         onboardingContainer = findViewById(R.id.onboardingContainer)
         line1 = findViewById(R.id.line1)
         line2 = findViewById(R.id.line2)
@@ -97,11 +100,6 @@ class PhotoSwipeActivity : AppCompatActivity() {
     }
 
     private fun showTextOnboarding() {
-        line1.text = "Here we categorise pictures which helps cleaning your gallery and file selection seamless with just a bunch of swipes"
-        line2.text = "Click left to dislike and right to like. Tap anywhere to begin!"
-        line3.text = " *👍 stores liked images"
-        line4.text = " *👎 stores disliked images"
-
         val textViews = listOf(line1, line2, line3, line4)
         val animationDuration = 600L
         val delayIncrement = 200L
@@ -167,10 +165,120 @@ class PhotoSwipeActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         recyclerView.visibility = View.VISIBLE
         recyclerView.layoutManager = LinearLayoutManager(this)
-        photoAdapter = PhotoAdapter { /* fullscreen handled in adapter */ }
+        photoAdapter = PhotoAdapter(
+            onPhotoClick = { photo ->
+                val index = photos.indexOfFirst { it.id == photo.id || it.imageUri == photo.imageUri }
+                if (index != -1) {
+                    PhotoViewerData.currentPhotos = photos
+                    val intent = Intent(this, ImageViewerActivity::class.java).apply {
+                        putExtra("startIndex", index)
+                    }
+                    startActivity(intent)
+                }
+            },
+            onPhotoLongClick = { photo ->
+                showPhotoOptionsBottomSheet(photo)
+            }
+        )
         recyclerView.adapter = photoAdapter
         photoAdapter.submitList(photos.toList())
         setupSwipeGestures()
+    }
+
+    private fun showPhotoOptionsBottomSheet(photo: Photo) {
+        val dialog = BottomSheetDialog(this, R.style.Theme_Snapy_PopupOverlay)
+        val view = layoutInflater.inflate(R.layout.dialog_photo_options, null)
+        dialog.setContentView(view)
+
+        val optionRestore = view.findViewById<View>(R.id.optionRestore)
+        val optionRemove = view.findViewById<View>(R.id.optionRemove)
+        val optionLike = view.findViewById<View>(R.id.optionLike)
+        val optionDislike = view.findViewById<View>(R.id.optionDislike)
+        val optionSend = view.findViewById<View>(R.id.optionSend)
+        val optionDelete = view.findViewById<View>(R.id.optionDelete)
+
+        // Reset visibility based on current status
+        optionRestore.visibility = View.GONE
+        optionRemove.visibility = View.GONE
+        optionLike.visibility = View.GONE
+        optionDislike.visibility = View.GONE
+        optionSend.visibility = View.GONE
+
+        if (photo.isLiked) {
+            optionSend.visibility = View.VISIBLE
+            optionDislike.visibility = View.VISIBLE
+            optionRemove.visibility = View.VISIBLE
+        } else if (photo.isDisliked) {
+            optionRestore.visibility = View.VISIBLE
+            optionRemove.visibility = View.VISIBLE
+            optionLike.visibility = View.VISIBLE
+        }
+
+        optionRestore.setOnClickListener {
+            photo.isLiked = false
+            photo.isDisliked = false
+            likedPhotos.remove(photo)
+            dislikedPhotos.remove(photo)
+            Toast.makeText(this, "Restored to gallery", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        optionRemove.setOnClickListener {
+            if (photo.isLiked) likedPhotos.remove(photo)
+            if (photo.isDisliked) dislikedPhotos.remove(photo)
+            Toast.makeText(this, "Removed from section", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        optionLike.setOnClickListener {
+            photo.isLiked = true
+            photo.isDisliked = false
+            if (!likedPhotos.contains(photo)) likedPhotos.add(photo)
+            dislikedPhotos.remove(photo)
+            Toast.makeText(this, "Moved to Liked", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        optionDislike.setOnClickListener {
+            photo.isLiked = false
+            photo.isDisliked = true
+            likedPhotos.remove(photo)
+            if (!dislikedPhotos.contains(photo)) dislikedPhotos.add(photo)
+            Toast.makeText(this, "Moved to Disliked", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        optionSend.setOnClickListener {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, photo.imageUri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, "Share Image"))
+            dialog.dismiss()
+        }
+
+        optionDelete.setOnClickListener {
+            deleteImageFromGallery(photo)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun deleteImageFromGallery(photo: Photo) {
+        try {
+            photo.imageUri?.let { uri ->
+                contentResolver.delete(uri, null, null)
+                photos.remove(photo)
+                likedPhotos.remove(photo)
+                dislikedPhotos.remove(photo)
+                photoAdapter.submitList(photos.toList())
+                Toast.makeText(this, "Deleted from gallery", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to delete: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupSwipeGestures() {
@@ -184,13 +292,25 @@ class PhotoSwipeActivity : AppCompatActivity() {
                 when (direction) {
                     ItemTouchHelper.RIGHT -> {
                         photo.isLiked = true
-                        likedPhotos.add(photo)
+                        photo.isDisliked = false
+                        if (!likedPhotos.contains(photo)) likedPhotos.add(photo)
                         Toast.makeText(this@PhotoSwipeActivity, "Liked", Toast.LENGTH_SHORT).show()
+                        
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val folderId = repository.getOrCreateFolderId(FOLDER_LIKED)
+                            repository.addPhotosToFolder(folderId, listOf(photo.imageUri.toString()))
+                        }
                     }
                     ItemTouchHelper.LEFT -> {
                         photo.isDisliked = true
-                        dislikedPhotos.add(photo)
+                        photo.isLiked = false
+                        if (!dislikedPhotos.contains(photo)) dislikedPhotos.add(photo)
                         Toast.makeText(this@PhotoSwipeActivity, "Disliked", Toast.LENGTH_SHORT).show()
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            val folderId = repository.getOrCreateFolderId(FOLDER_DISLIKED)
+                            repository.addPhotosToFolder(folderId, listOf(photo.imageUri.toString()))
+                        }
                     }
                 }
 
@@ -207,11 +327,17 @@ class PhotoSwipeActivity : AppCompatActivity() {
         fabAddPhoto.visibility = View.VISIBLE
 
         fabLikedPhotos.setOnClickListener {
-            startActivity(Intent(this, LikedPhotosActivity::class.java))
+            val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
+                putExtra("type", "liked")
+            }
+            startActivity(intent)
         }
 
         fabDislikedPhotos.setOnClickListener {
-            startActivity(Intent(this, DislikedPhotosActivity::class.java))
+            val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
+                putExtra("type", "disliked")
+            }
+            startActivity(intent)
         }
 
         fabAddPhoto.setOnClickListener {
@@ -239,5 +365,4 @@ class PhotoSwipeActivity : AppCompatActivity() {
             Toast.makeText(this, "Error adding images: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
-
 }

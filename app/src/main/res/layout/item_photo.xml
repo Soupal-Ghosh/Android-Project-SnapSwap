@@ -1,37 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    android:layout_margin="16dp">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Your photo -->
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/photoImageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:contentDescription="Review Image"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Snapy.RoundedPhotos" />
 
-        <!-- Date stamp overlay -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/overlay_gradient_dark" />
+
+        <ImageView
+            android:id="@+id/ivFavorite"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="24dp"
+            android:src="@drawable/ic_favorite_filled"
+            android:visibility="gone"
+            android:contentDescription="Favorite"
+            app:tint="@color/lavender_pink" />
+
         <TextView
             android:id="@+id/photoDateTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="01 Jan 2024"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/bg_glass_card"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="10dp"
+            android:textColor="@color/cat_text"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:background="#66000000"
-            android:padding="6dp"
-            android:layout_gravity="top|start"
-            android:layout_margin="8dp" />
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.1" />
 
     </FrameLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

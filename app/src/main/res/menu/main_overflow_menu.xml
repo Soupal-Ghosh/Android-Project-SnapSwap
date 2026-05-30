@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_photo_swipe"
+        android:title="Photo Swipe"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_categorization"
+        android:title="AI Categorization"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_collage"
+        android:title="Create Collage"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_favorites"
+        android:icon="@drawable/ic_like"
+        android:title="Favorites"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_your_folders"
+        android:title="Your Albums"
+        app:showAsAction="never" />
+</menu>

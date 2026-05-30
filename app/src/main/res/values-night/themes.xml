@@ -1,7 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Catppuccin Dark Theme -->
     <style name="Base.Theme.Snapy" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/lavender_pink</item>
+        <item name="colorSecondary">@color/lavender_pink_soft</item>
+        <item name="android:windowBackground">@color/cat_base</item>
+        <item name="android:statusBarColor">@color/cat_base</item>
+        <item name="android:navigationBarColor">@color/cat_base</item>
+    </style>
+
+    <style name="Theme.Snapy" parent="Base.Theme.Snapy">
+        <item name="materialButtonStyle">@style/Widget.Snapy.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.Snapy.CardView</item>
     </style>
 </resources>

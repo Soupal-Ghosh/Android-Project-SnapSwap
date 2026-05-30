@@ -1,26 +1,28 @@
 package com.example.snapy
 
+import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
 import java.io.OutputStream
 
 class CollagePreviewActivity : AppCompatActivity() {
 
     companion object {
-        var finalCollageBitmap: Bitmap? = null  // Set this before starting activity
+        var finalCollageBitmap: Bitmap? = null
     }
 
     private lateinit var collageImageView: ImageView
-    private lateinit var btnSave: Button
-    private lateinit var btnShare: Button
-    private lateinit var btnCancel: Button
+    private lateinit var btnSave: MaterialButton
+    private lateinit var btnShare: MaterialButton
+    private lateinit var btnCancel: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,31 +35,17 @@ class CollagePreviewActivity : AppCompatActivity() {
 
         finalCollageBitmap?.let {
             collageImageView.setImageBitmap(it)
+        } ?: run {
+            Toast.makeText(this, "Collage not found", Toast.LENGTH_SHORT).show()
+            finish()
         }
 
         btnSave.setOnClickListener {
-            finalCollageBitmap?.let { bitmap ->
-                val uri = saveBitmapToGallery(bitmap)
-                if (uri != null) {
-                    Toast.makeText(this, "Saved to Gallery", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Save failed", Toast.LENGTH_SHORT).show()
-                }
-            }
+            saveCollageToGallery(true)
         }
 
         btnShare.setOnClickListener {
-            finalCollageBitmap?.let { bitmap ->
-                val uri = saveBitmapToGallery(bitmap, shareOnly = true)
-                uri?.let {
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "image/*"
-                        putExtra(Intent.EXTRA_STREAM, it)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    }
-                    startActivity(Intent.createChooser(shareIntent, "Share Collage"))
-                }
-            }
+            shareCollage()
         }
 
         btnCancel.setOnClickListener {
@@ -65,13 +53,57 @@ class CollagePreviewActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveBitmapToGallery(bitmap: Bitmap, shareOnly: Boolean = false): Uri? {
-        val uri = MediaStore.Images.Media.insertImage(
-            contentResolver,
-            bitmap,
-            "SnapyCollage_${System.currentTimeMillis()}",
-            "Collage created using Snapy"
-        )
-        return if (uri != null) Uri.parse(uri) else null
+    private fun saveCollageToGallery(showToast: Boolean): Uri? {
+        val bitmap = finalCollageBitmap ?: return null
+        val filename = "Snapy_${System.currentTimeMillis()}.jpg"
+        var fos: OutputStream? = null
+        var imageUri: Uri? = null
+
+        try {
+            val contentResolver = contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/Snapy")
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+            }
+
+            imageUri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            
+            imageUri?.let { uri ->
+                fos = contentResolver.openOutputStream(uri)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos!!)
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    contentValues.clear()
+                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    contentResolver.update(uri, contentValues, null, null)
+                }
+                
+                if (showToast) Toast.makeText(this, "Saved to Gallery", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (showToast) Toast.makeText(this, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        } finally {
+            fos?.close()
+        }
+        return imageUri
+    }
+
+    private fun shareCollage() {
+        val uri = saveCollageToGallery(false)
+        if (uri != null) {
+            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/jpeg"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(shareIntent, "Share Collage"))
+        } else {
+            Toast.makeText(this, "Failed to prepare sharing", Toast.LENGTH_SHORT).show()
+        }
     }
 }

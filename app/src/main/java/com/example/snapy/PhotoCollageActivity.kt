@@ -1,7 +1,6 @@
 package com.example.snapy
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -10,15 +9,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -27,11 +23,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import android.graphics.Color
 
 class PhotoCollageActivity : AppCompatActivity() {
     private lateinit var selectedPhotosRecyclerView: RecyclerView
@@ -54,13 +48,9 @@ class PhotoCollageActivity : AppCompatActivity() {
         ActivityResultContracts.GetMultipleContents()
     ) { uris ->
         if (uris.isNotEmpty()) {
-            selectedPhotos.clear()
             selectedPhotos.addAll(uris)
             selectedPhotosRecyclerView.visibility = View.VISIBLE
             collagePhotoAdapter.updatePhotos(selectedPhotos)
-            Toast.makeText(this, "Selected ${uris.size} photos", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "No photos selected", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -71,6 +61,16 @@ class PhotoCollageActivity : AppCompatActivity() {
         setupViews()
         setupRecyclerView()
         setupClickListeners()
+        
+        // Handle photos passed from intent (e.g. from Gallery)
+        intent.getParcelableArrayListExtra<Photo>("photos")?.let { photos ->
+            val uris = photos.mapNotNull { it.imageUri }
+            if (uris.isNotEmpty()) {
+                selectedPhotos.addAll(uris)
+                selectedPhotosRecyclerView.visibility = View.VISIBLE
+                collagePhotoAdapter.updatePhotos(selectedPhotos)
+            }
+        }
     }
 
     private fun setupViews() {
@@ -84,13 +84,15 @@ class PhotoCollageActivity : AppCompatActivity() {
             if (position in selectedPhotos.indices) {
                 selectedPhotos.removeAt(position)
                 collagePhotoAdapter.removePhoto(position)
+                if (selectedPhotos.isEmpty()) {
+                    selectedPhotosRecyclerView.visibility = View.GONE
+                }
             }
         }
 
         selectedPhotosRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@PhotoCollageActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = collagePhotoAdapter
-            setHasFixedSize(false)
         }
     }
 
@@ -100,17 +102,11 @@ class PhotoCollageActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.btnCreateCollage).setOnClickListener {
-            when {
-                selectedPhotos.isEmpty() -> {
-                    Toast.makeText(this, "Please select at least one photo", Toast.LENGTH_SHORT).show()
-                }
-                collageTypeEditText.text.isNullOrEmpty() -> {
-                    Toast.makeText(this, "Please enter a collage type", Toast.LENGTH_SHORT).show()
-                }
-                else -> {
-                    createCollage(collageTypeEditText.text.toString())
-                }
+            if (selectedPhotos.isEmpty()) {
+                Toast.makeText(this, "Please select at least one photo", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+            createCollage(collageTypeEditText.text.toString())
         }
     }
 
@@ -121,176 +117,275 @@ class PhotoCollageActivity : AppCompatActivity() {
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
 
-        when {
-            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
-                pickImagesLauncher.launch("image/*")
-            }
-            else -> {
-                requestPermissionLauncher.launch(permission)
-            }
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+            pickImagesLauncher.launch("image/*")
+        } else {
+            requestPermissionLauncher.launch(permission)
         }
+    }
+    private fun createGalleryStyleCollage(
+        photos: List<Uri>
+    ): Bitmap {
+
+        val size = 3600
+        val spacing = 4
+
+        val result =
+            Bitmap.createBitmap(
+                size,
+                size,
+                Bitmap.Config.ARGB_8888
+            )
+
+        val canvas = Canvas(result)
+        canvas.drawColor(Color.WHITE)
+
+        when (photos.size) {
+
+            1 -> {
+
+                drawUriPhoto(
+                    canvas,
+                    photos[0],
+                    0,
+                    0,
+                    size,
+                    size
+                )
+            }
+
+            2 -> {
+
+                val w = (size - spacing) / 2
+
+                drawUriPhoto(canvas, photos[0], 0, 0, w, size)
+
+                drawUriPhoto(
+                    canvas,
+                    photos[1],
+                    w + spacing,
+                    0,
+                    w,
+                    size
+                )
+            }
+
+            3 -> {
+
+                val topHeight = (size - spacing) / 2
+                val bottomWidth = (size - spacing) / 2
+
+                drawUriPhoto(
+                    canvas,
+                    photos[0],
+                    0,
+                    0,
+                    size,
+                    topHeight
+                )
+
+                drawUriPhoto(
+                    canvas,
+                    photos[1],
+                    0,
+                    topHeight + spacing,
+                    bottomWidth,
+                    topHeight
+                )
+
+                drawUriPhoto(
+                    canvas,
+                    photos[2],
+                    bottomWidth + spacing,
+                    topHeight + spacing,
+                    bottomWidth,
+                    topHeight
+                )
+            }
+
+            4 -> {
+
+                val cell = (size - spacing) / 2
+
+                for (i in 0 until 4) {
+
+                    val row = i / 2
+                    val col = i % 2
+
+                    drawUriPhoto(
+                        canvas,
+                        photos[i],
+                        col * (cell + spacing),
+                        row * (cell + spacing),
+                        cell,
+                        cell
+                    )
+                }
+            }
+
+            else -> {
+
+                val columns = when {
+                    photos.size <= 6 -> 3
+                    photos.size <= 12 -> 4
+                    else -> 5
+                }
+
+                val rows =
+                    kotlin.math.ceil(
+                        photos.size / columns.toDouble()
+                    ).toInt()
+
+                val normalCellWidth =
+                    (size - spacing * (columns - 1)) / columns
+
+                val cellHeight =
+                    (size - spacing * (rows - 1)) / rows
+
+                for (row in 0 until rows) {
+
+                    val startIndex = row * columns
+                    val endIndex =
+                        minOf(startIndex + columns, photos.size)
+
+                    val itemsInThisRow =
+                        endIndex - startIndex
+
+                    val cellWidth =
+                        (size - spacing * (itemsInThisRow - 1))/ itemsInThisRow
+
+                    for (i in startIndex until endIndex) {
+
+                        val col = i - startIndex
+
+                        drawUriPhoto(
+                            canvas,
+                            photos[i],
+                            col * (cellWidth + spacing),
+                            row * (cellHeight + spacing),
+                            cellWidth,
+                            cellHeight
+                        )
+                    }
+                }
+            }
+            }
+
+        return result
+    }
+
+    private fun drawUriPhoto(
+        canvas: Canvas,
+        uri: Uri,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
+
+        val bitmap = loadBitmapFromUri(uri)
+
+        val cropped =
+            cropCenter(
+                bitmap,
+                width,
+                height
+            )
+
+        canvas.drawBitmap(
+            cropped,
+            x.toFloat(),
+            y.toFloat(),
+            null
+        )
+    }
+
+    private fun cropCenter(
+        bitmap: Bitmap,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap {
+
+        val scale =
+            maxOf(
+                targetWidth.toFloat() / bitmap.width,
+                targetHeight.toFloat() / bitmap.height
+            )
+
+        val scaledWidth =
+            (bitmap.width * scale).toInt()
+
+        val scaledHeight =
+            (bitmap.height * scale).toInt()
+
+        val scaled =
+            Bitmap.createScaledBitmap(
+                bitmap,
+                scaledWidth,
+                scaledHeight,
+                true
+            )
+
+        val cropX =
+            (scaledWidth - targetWidth) / 2
+
+        val cropY =
+            (scaledHeight - targetHeight) / 2
+
+        return Bitmap.createBitmap(
+            scaled,
+            cropX,
+            cropY,
+            targetWidth,
+            targetHeight
+        )
     }
 
     private fun createCollage(collageType: String) {
+
         progressBar.visibility = View.VISIBLE
 
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val quote = generateQuote(collageType)
-                val collageUri = createCollageWithQuote(selectedPhotos, quote)
 
-                val collageBitmap = BitmapFactory.decodeFile(collageUri.path)
+            try {
+
+                val finalBitmap =
+                    createGalleryStyleCollage(selectedPhotos)
 
                 withContext(Dispatchers.Main) {
+
                     progressBar.visibility = View.GONE
-                    CollagePreviewActivity.finalCollageBitmap = collageBitmap
-                    val intent = Intent(this@PhotoCollageActivity, CollagePreviewActivity::class.java)
-                    startActivity(intent)
+
+                    CollagePreviewActivity.finalCollageBitmap =
+                        finalBitmap
+
+                    startActivity(
+                        Intent(
+                            this@PhotoCollageActivity,
+                            CollagePreviewActivity::class.java
+                        )
+                    )
                 }
 
             } catch (e: Exception) {
+
                 withContext(Dispatchers.Main) {
+
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this@PhotoCollageActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+
+                    Toast.makeText(
+                        this@PhotoCollageActivity,
+                        "Error: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
-    }
-
-
-    private fun generateQuote(collageType: String): String {
-        val quotes = when (collageType.lowercase()) {
-            "birthday" -> listOf("🎉 Happy Birthday!", "🎂 Enjoy your day!", "🎈 Wishing joy!")
-            "travel" -> listOf("✈️ Let's travel!", "🌍 Adventure begins!", "🗺️ Explore more!")
-            "family" -> listOf("❤️ Family forever", "👨‍👩‍👧‍👦 Together is home", "💝 Precious bonds")
-            else -> listOf("📸 Making memories", "💫 Capturing life", "✨ Moments forever")
-        }
-        return quotes.random()
-    }
-
-    private fun createCollageWithQuote(photos: List<Uri>, quote: String): Uri {
-        val collageBitmap = when (photos.size) {
-            1 -> loadBitmapFromUri(photos[0])
-            2 -> createSideBySide(photos[0], photos[1])
-            3, 4 -> createGridCollage(photos.take(4))
-            else -> {
-                runOnUiThread {
-                    Toast.makeText(this, "Only the first 4 photos will be used for the collage.", Toast.LENGTH_SHORT).show()
-                }
-                createGridCollage(photos.take(4))
-            }
-        }
-        val finalBitmap = addQuote(collageBitmap, quote)
-        return Uri.fromFile(saveBitmap(finalBitmap))
-    }
-
-    private fun createSideBySide(uri1: Uri, uri2: Uri): Bitmap {
-        val bmp1 = loadBitmapFromUri(uri1)
-        val bmp2 = loadBitmapFromUri(uri2)
-
-        val width = bmp1.width + bmp2.width
-        val height = maxOf(bmp1.height, bmp2.height)
-
-        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawBitmap(bmp1, 0f, 0f, null)
-        canvas.drawBitmap(bmp2, bmp1.width.toFloat(), 0f, null)
-        return result
-    }
-
-    private fun createGridCollage(photos: List<Uri>): Bitmap {
-        // 2x2 grid
-        val bitmaps = photos.mapNotNull {
-            try { loadBitmapFromUri(it) } catch (e: Exception) { null }
-        }
-        val cellSize = 600
-        val gridSize = 2
-        val size = cellSize * gridSize
-        val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawColor(android.graphics.Color.BLACK)
-        for (i in bitmaps.indices) {
-            val bmp = Bitmap.createScaledBitmap(bitmaps[i], cellSize, cellSize, true)
-            val row = i / gridSize
-            val col = i % gridSize
-            canvas.drawBitmap(bmp, (col * cellSize).toFloat(), (row * cellSize).toFloat(), null)
-        }
-        return result
-    }
-
-    private fun addQuote(bitmap: Bitmap, quote: String): Bitmap {
-        val result = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(result)
-        val paint = Paint().apply {
-            color = android.graphics.Color.WHITE
-            textSize = 60f
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-            setShadowLayer(10f, 0f, 0f, android.graphics.Color.BLACK)
-        }
-        canvas.drawText(quote, bitmap.width / 2f, bitmap.height - 100f, paint)
-        return result
     }
 
     private fun loadBitmapFromUri(uri: Uri): Bitmap {
-        contentResolver.openInputStream(uri)?.use {
-            return BitmapFactory.decodeStream(it)
-        }
-        throw IllegalArgumentException("Failed to decode bitmap from URI: $uri")
-    }
-
-    private fun saveBitmap(bitmap: Bitmap): File {
-        val file = File(getExternalFilesDir(null), "collage_${System.currentTimeMillis()}.jpg")
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        }
-        return file
-    }
-
-    private suspend fun uploadImageToCloudinary(context: Context, uri: Uri): String {
-        val cloudName = "dntby7zeo"
-        val uploadPreset = "SNAPSWAP"
-
-        val inputStream = context.contentResolver.openInputStream(uri)
-            ?: throw Exception("Cannot open input stream")
-        val fileBytes = inputStream.readBytes()
-        inputStream.close()
-
-        val mediaType = "image/jpeg".toMediaTypeOrNull()
-            ?: throw Exception("Invalid media type")
-
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart(
-                "file", "image.jpg",
-                RequestBody.create(mediaType, fileBytes)
-            )
-            .addFormDataPart("upload_preset", uploadPreset)
-            .build()
-
-        val request = Request.Builder()
-            .url("https://api.cloudinary.com/v1_1/$cloudName/image/upload")
-            .post(requestBody)
-            .build()
-
-        val response = OkHttpClient().newCall(request).execute()
-        if (!response.isSuccessful) throw Exception("Upload failed: ${response.code}")
-
-        val responseBody = response.body?.string()
-        if (responseBody == null) throw Exception("Empty response body")
-        
-        val json = JSONObject(responseBody)
-        return json.getString("secure_url")
-    }
-
-    private fun showCollageResult(imageUrl: String) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(imageUrl))
-        startActivity(intent)
-
-        android.app.AlertDialog.Builder(this)
-            .setTitle("Your Collage")
-            .setMessage("Uploaded to Cloudinary!\n\n$imageUrl")
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .show()
+        return contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it)
+        } ?: throw IllegalArgumentException("Failed to decode bitmap from URI: $uri")
     }
 }

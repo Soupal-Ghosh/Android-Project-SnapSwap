@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_share"
+        android:title="Share"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@drawable/ic_delete"
+        android:title="Delete"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_collage"
+        android:icon="@drawable/ic_grid"
+        android:title="Collage"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_add_to_folder"
+        android:icon="@drawable/ic_add"
+        android:title="Add to Album"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_remove_from_album"
+        android:icon="@drawable/ic_undo"
+        android:title="Remove from Album"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_favorites"
+        android:icon="@drawable/ic_favorite_outline"
+        android:title="Toggle Favorites"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_crop"
+        android:title="Crop"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_details"
+        android:title="Details"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_select_all"
+        android:title="Select All"
+        app:showAsAction="never" />
+
+</menu>

@@ -1,121 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bglogin_snapswap"
-    android:orientation="vertical">
+    android:background="@color/cat_base">
 
-    <!-- Onboarding container -->
-    <LinearLayout
+    <!-- Onboarding (Soft Lavender) -->
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/onboardingContainer"
+        style="@style/Widget.Snapy.CardView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:layout_margin="32dp"
         android:visibility="gone"
-        android:padding="24dp"
-        android:clickable="true"
-        android:focusable="true">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/line1"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Here we categorise pictures which helps cleaning your gallery and file selection seamless with just a bunch of swipes"
-            android:textColor="#FFFFFF"
-            android:translationY="1000dp"
-            android:textSize="24sp"
-            android:layout_marginBottom="16dp" />
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp">
 
-        <TextView
-            android:id="@+id/line2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Click left to like and right to dislike and tap anywhere on the screen to begin !"
-            android:textColor="#FFFFFF"
-            android:translationY="1000dp"
-            android:textSize="20sp"
-            android:layout_marginBottom="16dp" />
+            <TextView
+                android:id="@+id/line1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:text="Flick through the roll."
+                android:textColor="@color/cat_text"
+                android:textSize="22sp"
+                android:fontFamily="sans-serif-medium" />
 
-        <TextView
-            android:id="@+id/line3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="*👍 stores liked images"
-            android:textColor="#FFFFFF"
-            android:translationY="1000dp"
-            android:textSize="20sp"
-            android:layout_marginBottom="16dp" />
+            <TextView
+                android:id="@+id/line2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:text="RIGHT to Keep\nLEFT to Discard"
+                android:textColor="@color/cat_lavender"
+                android:textSize="18sp" />
 
-        <TextView
-            android:id="@+id/line4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=" *👎 stores disliked images"
-            android:textColor="#FFFFFF"
-            android:translationY="1000dp"
-            android:textSize="20sp"
-            android:layout_marginBottom="16dp" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/line3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Archive: Kept for memories"
+                android:textColor="@color/cat_subtext1"
+                android:textSize="16sp" />
 
-    <!-- Loading ProgressBar -->
+            <TextView
+                android:id="@+id/line4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bin: Into the dark"
+                android:textColor="@color/cat_subtext1"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Loading -->
     <ProgressBar
         android:id="@+id/loadingProgressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
+        android:indeterminateTint="@color/cat_lavender"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Gallery RecyclerView -->
+    <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="16dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
+        android:padding="20dp"
         android:visibility="gone"
-        android:orientation="vertical"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        app:layout_constraintBottom_toTopOf="@id/fabContainer"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:listitem="@layout/item_photo" />
 
-    <!-- Floating Action Buttons at Bottom Center -->
+    <!-- Actions (Cozy Glass Bar) -->
     <LinearLayout
         android:id="@+id/fabContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
+        android:layout_margin="24dp"
+        android:background="@drawable/bg_glass_card"
         android:gravity="center"
-        android:padding="16dp"
-        android:visibility="visible"
-        android:background="@android:color/transparent">
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabLikedPhotos"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:contentDescription="View Liked Photos"
-            android:src="@drawable/ic_thumb_up" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabAddPhoto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:contentDescription="Add Photo"
-            android:src="@drawable/ic_add" />
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabDislikedPhotos"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:contentDescription="View Disliked Photos"
-            android:src="@drawable/ic_thumb_down" />
+            android:layout_marginEnd="20dp"
+            android:contentDescription="Review Bin"
+            android:src="@drawable/ic_dislike"
+            app:backgroundTint="@color/cat_surface0"
+            app:fabSize="mini"
+            app:tint="@color/cat_rosewater" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Add to Roll"
+            android:src="@drawable/ic_add"
+            app:backgroundTint="@color/lavender_pink"
+            app:fabSize="normal"
+            app:tint="@color/cat_base" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabLikedPhotos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:contentDescription="Review Archive"
+            android:src="@drawable/ic_like"
+            app:backgroundTint="@color/cat_surface0"
+            app:fabSize="mini"
+            app:tint="@color/lavender_pink" />
     </LinearLayout>
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

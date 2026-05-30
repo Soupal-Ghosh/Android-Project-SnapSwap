@@ -1,19 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/cat_base">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/cat_mantle"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="Snapy"
+            app:titleTextColor="@color/cat_text"
+            app:titleTextAppearance="@style/TextAppearance.Snapy.Headline"
+            app:popupTheme="@style/Theme.Snapy.PopupOverlay" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="4dp"
+            android:padding="12dp"
             android:clipToPadding="false"
-            android:scrollbars="vertical"/>
+            android:layoutAnimation="@anim/layout_animation_fall_down" />
 
         <!-- Empty State -->
         <TextView
@@ -21,66 +41,75 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="No photos yet. Swipe photos in the main screen to add them here!"
+            android:text="Quiet night in the gallery."
+            android:textColor="@color/cat_overlay1"
             android:textSize="16sp"
-            android:textColor="@android:color/darker_gray"
-            android:gravity="center"
-            android:padding="32dp"
             android:visibility="gone"/>
 
     </FrameLayout>
 
-    <!-- Liked Buttons -->
+    <!-- Floating Actions (Cozy Pill Bar) -->
     <LinearLayout
         android:id="@+id/likedButtonsLayout"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/bg_glass_card"
+        android:elevation="12dp"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="16dp"
-        android:background="@android:color/transparent"
-        android:visibility="visible">
+        android:padding="10dp"
+        android:visibility="gone">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabUndo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_undo" />
+            android:src="@drawable/ic_undo"
+            app:backgroundTint="@color/cat_surface0"
+            app:tint="@color/lavender_pink"
+            app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabShare"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:src="@drawable/ic_share" />
+            android:src="@drawable/ic_share"
+            app:backgroundTint="@color/lavender_pink"
+            app:tint="@color/cat_base"
+            app:fabSize="mini" />
     </LinearLayout>
 
-    <!-- Disliked Buttons -->
     <LinearLayout
         android:id="@+id/dislikedButtonsLayout"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/bg_glass_card"
+        android:elevation="12dp"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="16dp"
-        android:background="@android:color/transparent"
-        android:visibility="visible">
+        android:padding="10dp"
+        android:visibility="gone">
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabUndoDislike"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
-            android:src="@drawable/ic_undo" />
+            android:src="@drawable/ic_undo"
+            app:backgroundTint="@color/cat_surface0"
+            app:tint="@color/cat_rosewater"
+            app:fabSize="mini" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabDelete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:src="@drawable/ic_delete" />
+            android:src="@drawable/ic_delete"
+            app:backgroundTint="@color/cat_red"
+            app:tint="@color/cat_base"
+            app:fabSize="mini" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

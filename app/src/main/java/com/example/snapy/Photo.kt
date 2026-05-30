@@ -11,5 +11,6 @@ data class Photo(
     val imageUri: Uri? = null,
     val dateTaken: Long=0L,
     var isLiked: Boolean = false,
-    var isDisliked: Boolean = false
+    var isDisliked: Boolean = false,
+    var isSelected: Boolean = false
 ) : Parcelable 
