@@ -10,13 +10,41 @@
     app:strokeWidth="1dp"
     app:strokeColor="@color/lavender_pink">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/imageView"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:adjustViewBounds="true"
-        android:scaleType="fitCenter"
-        android:contentDescription="Gallery Shot"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Snapy.RoundedPhotos" />
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:contentDescription="Gallery Shot"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Snapy.RoundedPhotos" />
+
+        <ImageView
+            android:id="@+id/ivFavorite"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_favorite_filled"
+            android:visibility="gone"
+            android:contentDescription="Favorite"
+            app:tint="@color/lavender_pink" />
+
+        <ImageView
+            android:id="@+id/selectionIndicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:src="@drawable/ic_check"
+            android:visibility="gone"
+            android:contentDescription="Selected"
+            app:tint="@color/lavender_pink" />
+
+    </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>

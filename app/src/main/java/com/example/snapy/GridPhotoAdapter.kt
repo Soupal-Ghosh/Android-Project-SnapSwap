@@ -1,6 +1,7 @@
 package com.example.snapy
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -13,9 +14,13 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.snapy.databinding.ItemGridPhotoBinding
 
 class GridPhotoAdapter(
-    private val onPhotoClick: ((Photo) -> Unit)? = null,
-    private val onPhotoLongClick: ((Photo) -> Unit)? = null
+    private val onPhotoClick: (Photo) -> Unit,
+    private val onPhotoLongClick: (Photo) -> Unit,
+    private val onSelectionChanged: (Int) -> Unit
 ) : ListAdapter<GalleryItem, RecyclerView.ViewHolder>(GalleryDiffCallback()) {
+
+    private var isSelectionMode = false
+    private val selectedItems = mutableSetOf<Int>()
 
     companion object {
         private const val TYPE_HEADER = 0
@@ -42,7 +47,7 @@ class GridPhotoAdapter(
                     parent,
                     false
                 )
-                GridPhotoViewHolder(binding, onPhotoClick, onPhotoLongClick)
+                GridPhotoViewHolder(binding)
             }
         }
     }
@@ -58,8 +63,62 @@ class GridPhotoAdapter(
 
         when (holder) {
             is HeaderViewHolder -> holder.bind((item as GalleryItem.Header).title)
-            is GridPhotoViewHolder -> holder.bind((item as GalleryItem.PhotoItem).photo)
+            is GridPhotoViewHolder -> {
+                val photoItem = item as GalleryItem.PhotoItem
+                holder.bind(photoItem.photo, selectedItems.contains(photoItem.photo.id))
+                
+                holder.itemView.setOnClickListener {
+                    if (isSelectionMode) {
+                        toggleSelection(photoItem.photo.id)
+                    } else {
+                        onPhotoClick(photoItem.photo)
+                    }
+                }
+                
+                holder.itemView.setOnLongClickListener {
+                    if (!isSelectionMode) {
+                        isSelectionMode = true
+                        toggleSelection(photoItem.photo.id)
+                        onPhotoLongClick(photoItem.photo)
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
         }
+    }
+
+    private fun toggleSelection(photoId: Int) {
+        if (selectedItems.contains(photoId)) {
+            selectedItems.remove(photoId)
+        } else {
+            selectedItems.add(photoId)
+        }
+        notifyDataSetChanged() 
+        onSelectionChanged(selectedItems.size)
+    }
+
+    fun setSelectionMode(enabled: Boolean) {
+        if (isSelectionMode != enabled) {
+            isSelectionMode = enabled
+            if (!enabled) selectedItems.clear()
+            notifyDataSetChanged()
+        }
+    }
+
+    fun getSelectedPhotos(): List<Photo> {
+        return currentList.filterIsInstance<GalleryItem.PhotoItem>()
+            .map { it.photo }
+            .filter { selectedItems.contains(it.id) }
+    }
+    
+    fun selectAll() {
+        currentList.filterIsInstance<GalleryItem.PhotoItem>().forEach {
+            selectedItems.add(it.photo.id)
+        }
+        notifyDataSetChanged()
+        onSelectionChanged(selectedItems.size)
     }
 
     class HeaderViewHolder(private val textView: TextView) : RecyclerView.ViewHolder(textView) {
@@ -69,31 +128,26 @@ class GridPhotoAdapter(
     }
 
     class GridPhotoViewHolder(
-        private val binding: ItemGridPhotoBinding,
-        private val onPhotoClick: ((Photo) -> Unit)?,
-        private val onPhotoLongClick: ((Photo) -> Unit)?
+        private val binding: ItemGridPhotoBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(photo: Photo) {
+        fun bind(photo: Photo, isSelected: Boolean) {
             val requestOptions = RequestOptions()
-                .fitCenter() // Preserve aspect ratio
+                .fitCenter() 
+                .override(400, 400) // Lower resolution for grid thumbnails
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .error(android.R.drawable.ic_menu_report_image)
 
             Glide.with(binding.root)
                 .load(photo.imageUri ?: photo.imageResId)
                 .apply(requestOptions)
+                .thumbnail(0.25f) // Load a 20% resolution thumbnail first
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(binding.imageView)
             
-            binding.root.setOnClickListener {
-                onPhotoClick?.invoke(photo)
-            }
-            
-            binding.root.setOnLongClickListener {
-                onPhotoLongClick?.invoke(photo)
-                true
-            }
+            binding.selectionIndicator.visibility = if (isSelected) View.VISIBLE else View.GONE
+            binding.ivFavorite.visibility = if (photo.isLiked) View.VISIBLE else View.GONE
+            binding.root.alpha = if (isSelected) 0.7f else 1.0f
         }
     }
 

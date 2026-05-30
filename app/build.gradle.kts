@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.parcelize")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -114,6 +115,18 @@ dependencies {
     implementation("com.google.mlkit:image-labeling:17.0.7")
     implementation("com.google.mlkit:image-labeling-common:18.0.0")
     implementation("com.google.mlkit:vision-common:17.0.0")
+
+    // Room persistence
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
+
+    // Image Cropping
+    implementation("com.github.CanHub:Android-Image-Cropper:4.5.0")
+
+    // Image Zoom
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 
     //  Unit Testing
     testImplementation("junit:junit:4.13.2")

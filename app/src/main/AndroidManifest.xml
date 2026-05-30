@@ -74,7 +74,16 @@
             android:name=".PhotoCollageActivity"
             android:exported="false" />
 
-        <!-- AI & Auth Activities -->
+        <activity
+            android:name=".YourFoldersActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Snapy" />
+
+        <activity
+            android:name=".FolderPhotosActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Snapy" />
+
         <activity
             android:name=".AICategorizationActivity"
             android:exported="false" />
@@ -85,6 +94,14 @@
 
         <activity android:name=".ImageViewerActivity"
             android:theme="@style/Theme.Snapy" />
+
+        <activity android:name=".CropActivity"
+            android:theme="@style/Theme.Snapy"
+            android:exported="false" />
+
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
 
     </application>
 

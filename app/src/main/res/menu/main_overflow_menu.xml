@@ -13,4 +13,13 @@
         android:id="@+id/menu_collage"
         android:title="Create Collage"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_favorites"
+        android:icon="@drawable/ic_like"
+        android:title="Favorites"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_your_folders"
+        android:title="Your Albums"
+        app:showAsAction="never" />
 </menu>

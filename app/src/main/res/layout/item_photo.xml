@@ -23,6 +23,17 @@
             android:layout_gravity="bottom"
             android:background="@drawable/overlay_gradient_dark" />
 
+        <ImageView
+            android:id="@+id/ivFavorite"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="24dp"
+            android:src="@drawable/ic_favorite_filled"
+            android:visibility="gone"
+            android:contentDescription="Favorite"
+            app:tint="@color/lavender_pink" />
+
         <TextView
             android:id="@+id/photoDateTextView"
             android:layout_width="wrap_content"
