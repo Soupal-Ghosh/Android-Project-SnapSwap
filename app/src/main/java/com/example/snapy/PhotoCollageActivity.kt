@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import android.graphics.Color
 
 class PhotoCollageActivity : AppCompatActivity() {
     private lateinit var selectedPhotosRecyclerView: RecyclerView
@@ -122,103 +123,264 @@ class PhotoCollageActivity : AppCompatActivity() {
             requestPermissionLauncher.launch(permission)
         }
     }
+    private fun createGalleryStyleCollage(
+        photos: List<Uri>
+    ): Bitmap {
+
+        val size = 3600
+        val spacing = 4
+
+        val result =
+            Bitmap.createBitmap(
+                size,
+                size,
+                Bitmap.Config.ARGB_8888
+            )
+
+        val canvas = Canvas(result)
+        canvas.drawColor(Color.WHITE)
+
+        when (photos.size) {
+
+            1 -> {
+
+                drawUriPhoto(
+                    canvas,
+                    photos[0],
+                    0,
+                    0,
+                    size,
+                    size
+                )
+            }
+
+            2 -> {
+
+                val w = (size - spacing) / 2
+
+                drawUriPhoto(canvas, photos[0], 0, 0, w, size)
+
+                drawUriPhoto(
+                    canvas,
+                    photos[1],
+                    w + spacing,
+                    0,
+                    w,
+                    size
+                )
+            }
+
+            3 -> {
+
+                val topHeight = (size - spacing) / 2
+                val bottomWidth = (size - spacing) / 2
+
+                drawUriPhoto(
+                    canvas,
+                    photos[0],
+                    0,
+                    0,
+                    size,
+                    topHeight
+                )
+
+                drawUriPhoto(
+                    canvas,
+                    photos[1],
+                    0,
+                    topHeight + spacing,
+                    bottomWidth,
+                    topHeight
+                )
+
+                drawUriPhoto(
+                    canvas,
+                    photos[2],
+                    bottomWidth + spacing,
+                    topHeight + spacing,
+                    bottomWidth,
+                    topHeight
+                )
+            }
+
+            4 -> {
+
+                val cell = (size - spacing) / 2
+
+                for (i in 0 until 4) {
+
+                    val row = i / 2
+                    val col = i % 2
+
+                    drawUriPhoto(
+                        canvas,
+                        photos[i],
+                        col * (cell + spacing),
+                        row * (cell + spacing),
+                        cell,
+                        cell
+                    )
+                }
+            }
+
+            else -> {
+
+                val columns = when {
+                    photos.size <= 6 -> 3
+                    photos.size <= 12 -> 4
+                    else -> 5
+                }
+
+                val rows =
+                    kotlin.math.ceil(
+                        photos.size / columns.toDouble()
+                    ).toInt()
+
+                val normalCellWidth =
+                    (size - spacing * (columns - 1)) / columns
+
+                val cellHeight =
+                    (size - spacing * (rows - 1)) / rows
+
+                for (row in 0 until rows) {
+
+                    val startIndex = row * columns
+                    val endIndex =
+                        minOf(startIndex + columns, photos.size)
+
+                    val itemsInThisRow =
+                        endIndex - startIndex
+
+                    val cellWidth =
+                        (size - spacing * (itemsInThisRow - 1))/ itemsInThisRow
+
+                    for (i in startIndex until endIndex) {
+
+                        val col = i - startIndex
+
+                        drawUriPhoto(
+                            canvas,
+                            photos[i],
+                            col * (cellWidth + spacing),
+                            row * (cellHeight + spacing),
+                            cellWidth,
+                            cellHeight
+                        )
+                    }
+                }
+            }
+            }
+
+        return result
+    }
+
+    private fun drawUriPhoto(
+        canvas: Canvas,
+        uri: Uri,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int
+    ) {
+
+        val bitmap = loadBitmapFromUri(uri)
+
+        val cropped =
+            cropCenter(
+                bitmap,
+                width,
+                height
+            )
+
+        canvas.drawBitmap(
+            cropped,
+            x.toFloat(),
+            y.toFloat(),
+            null
+        )
+    }
+
+    private fun cropCenter(
+        bitmap: Bitmap,
+        targetWidth: Int,
+        targetHeight: Int
+    ): Bitmap {
+
+        val scale =
+            maxOf(
+                targetWidth.toFloat() / bitmap.width,
+                targetHeight.toFloat() / bitmap.height
+            )
+
+        val scaledWidth =
+            (bitmap.width * scale).toInt()
+
+        val scaledHeight =
+            (bitmap.height * scale).toInt()
+
+        val scaled =
+            Bitmap.createScaledBitmap(
+                bitmap,
+                scaledWidth,
+                scaledHeight,
+                true
+            )
+
+        val cropX =
+            (scaledWidth - targetWidth) / 2
+
+        val cropY =
+            (scaledHeight - targetHeight) / 2
+
+        return Bitmap.createBitmap(
+            scaled,
+            cropX,
+            cropY,
+            targetWidth,
+            targetHeight
+        )
+    }
 
     private fun createCollage(collageType: String) {
+
         progressBar.visibility = View.VISIBLE
 
         CoroutineScope(Dispatchers.IO).launch {
+
             try {
-                val quote = generateQuote(collageType)
-                val finalBitmap = createCollageWithQuote(selectedPhotos, quote)
+
+                val finalBitmap =
+                    createGalleryStyleCollage(selectedPhotos)
 
                 withContext(Dispatchers.Main) {
+
                     progressBar.visibility = View.GONE
-                    CollagePreviewActivity.finalCollageBitmap = finalBitmap
-                    startActivity(Intent(this@PhotoCollageActivity, CollagePreviewActivity::class.java))
+
+                    CollagePreviewActivity.finalCollageBitmap =
+                        finalBitmap
+
+                    startActivity(
+                        Intent(
+                            this@PhotoCollageActivity,
+                            CollagePreviewActivity::class.java
+                        )
+                    )
                 }
 
             } catch (e: Exception) {
+
                 withContext(Dispatchers.Main) {
+
                     progressBar.visibility = View.GONE
-                    Toast.makeText(this@PhotoCollageActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+
+                    Toast.makeText(
+                        this@PhotoCollageActivity,
+                        "Error: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
-    }
-
-    private fun generateQuote(collageType: String): String {
-        val quotes = when (collageType.lowercase()) {
-            "birthday" -> listOf("🎉 Happy Birthday!", "🎂 Enjoy your day!", "🎈 Wishing joy!")
-            "travel" -> listOf("✈️ Let's travel!", "🌍 Adventure begins!", "🗺️ Explore more!")
-            "family" -> listOf("❤️ Family forever", "👨‍👩‍👧‍👦 Together is home", "💝 Precious bonds")
-            else -> listOf("📸 Making memories", "💫 Capturing life", "✨ Moments forever")
-        }
-        return quotes.random()
-    }
-
-    private fun createCollageWithQuote(photos: List<Uri>, quote: String): Bitmap {
-        val collageBitmap = when (photos.size) {
-            1 -> loadBitmapFromUri(photos[0])
-            2 -> createSideBySide(photos[0], photos[1])
-            else -> createGridCollage(photos.take(4))
-        }
-        return addQuote(collageBitmap, quote)
-    }
-
-    private fun createSideBySide(uri1: Uri, uri2: Uri): Bitmap {
-        val bmp1 = loadBitmapFromUri(uri1)
-        val bmp2 = loadBitmapFromUri(uri2)
-
-        val width = bmp1.width + bmp2.width
-        val height = maxOf(bmp1.height, bmp2.height)
-
-        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawBitmap(bmp1, 0f, 0f, null)
-        canvas.drawBitmap(bmp2, bmp1.width.toFloat(), (height - bmp2.height) / 2f, null)
-        return result
-    }
-
-    private fun createGridCollage(photos: List<Uri>): Bitmap {
-        val bitmaps = photos.map { loadBitmapFromUri(it) }
-        val cellSize = 800
-        val gridSize = 2
-        val size = cellSize * gridSize
-        val result = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawColor(android.graphics.Color.BLACK)
-        
-        for (i in bitmaps.indices) {
-            val originalBmp = bitmaps[i]
-            // Center crop scaling
-            val scale = cellSize.toFloat() / minOf(originalBmp.width, originalBmp.height)
-            val scaledWidth = (originalBmp.width * scale).toInt()
-            val scaledHeight = (originalBmp.height * scale).toInt()
-            val scaledBmp = Bitmap.createScaledBitmap(originalBmp, scaledWidth, scaledHeight, true)
-            
-            val cropX = (scaledWidth - cellSize) / 2
-            val cropY = (scaledHeight - cellSize) / 2
-            val finalCellBmp = Bitmap.createBitmap(scaledBmp, cropX, cropY, cellSize, cellSize)
-
-            val row = i / gridSize
-            val col = i % gridSize
-            canvas.drawBitmap(finalCellBmp, (col * cellSize).toFloat(), (row * cellSize).toFloat(), null)
-        }
-        return result
-    }
-
-    private fun addQuote(bitmap: Bitmap, quote: String): Bitmap {
-        val result = bitmap.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(result)
-        val paint = Paint().apply {
-            color = android.graphics.Color.WHITE
-            textSize = bitmap.height / 15f
-            textAlign = Paint.Align.CENTER
-            isAntiAlias = true
-            setShadowLayer(10f, 0f, 0f, android.graphics.Color.BLACK)
-        }
-        canvas.drawText(quote, bitmap.width / 2f, bitmap.height - (bitmap.height / 20f), paint)
-        return result
     }
 
     private fun loadBitmapFromUri(uri: Uri): Bitmap {
