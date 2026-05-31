@@ -19,6 +19,14 @@
         android:title="Favorites"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/menu_disliked"
+        android:title="Disliked"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_trash"
+        android:title="Trash"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menu_your_folders"
         android:title="Your Albums"
         app:showAsAction="never" />
