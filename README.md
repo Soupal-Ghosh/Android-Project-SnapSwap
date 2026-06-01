@@ -58,3 +58,7 @@ To install manually:
 
 ```bash
 git clone https://github.com/Soupal-Ghosh/Android-Project-SnapSwap.git
+
+```
+To run the AI image categorization paste the encoder and decoder files from this drive link in the asset directory in the android code :
+https://drive.google.com/drive/folders/1LNEXCEQywCIg2dboHnW0hvWKZEgaWfD2?usp=drive_link
