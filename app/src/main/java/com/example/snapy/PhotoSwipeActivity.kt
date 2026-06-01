@@ -32,7 +32,8 @@ class PhotoSwipeActivity : AppCompatActivity() {
         val likedPhotos = mutableListOf<Photo>()
         val dislikedPhotos = mutableListOf<Photo>()
         const val FOLDER_LIKED = "Favorites"
-        const val FOLDER_DISLIKED = "Trash"
+        const val FOLDER_DISLIKED = "Disliked"
+        const val FOLDER_TRASH = "Trash"
     }
 
     private lateinit var onboardingContainer: View

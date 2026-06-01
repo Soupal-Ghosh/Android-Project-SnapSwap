@@ -55,6 +55,12 @@ class ImageViewerActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Refresh photos from singleton to catch any changes from gallery (like deletions)
+        refreshPhotosAndUI()
+    }
+
     private fun refreshPhotosAndUI() {
         lifecycleScope.launch(Dispatchers.IO) {
             // Clear Glide memory cache is done on main thread, but disk cache on IO
@@ -220,45 +226,33 @@ class ImageViewerActivity : AppCompatActivity() {
 
     private fun showDeleteConfirmation(photo: Photo) {
         AlertDialog.Builder(this)
-            .setTitle("Delete Photo")
-            .setMessage("Are you sure you want to delete this photo from device?")
-            .setPositiveButton("Delete") { _, _ ->
-                deletePhoto(photo)
+            .setTitle("Move to Trash")
+            .setMessage("Are you sure you want to move this photo to Trash?")
+            .setPositiveButton("Move") { _, _ ->
+                moveToTrash(photo)
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun deletePhoto(photo: Photo) {
-        try {
-            photo.imageUri?.let { uri ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val pendingIntent = MediaStore.createDeleteRequest(contentResolver, listOf(uri))
-                    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent.intentSender).build()
-                    intentSenderLauncher.launch(intentSenderRequest)
-                    // Note: Local list update will happen in loadGalleryImagesAndSetup if using onActivityResult,
-                    // but here we just finish or move next after confirm.
+    private fun moveToTrash(photo: Photo) {
+        lifecycleScope.launch {
+            try {
+                val folderId = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_TRASH)
+                repository.addPhotosToFolder(folderId, listOf(photo.imageUri.toString()))
+                Toast.makeText(this@ImageViewerActivity, "Moved to Trash", Toast.LENGTH_SHORT).show()
+                setResult(Activity.RESULT_OK)
+                
+                val currentPos = binding.viewPager.currentItem
+                photosList.removeAt(currentPos)
+                if (photosList.isEmpty()) {
+                    finish()
                 } else {
-                    contentResolver.delete(uri, null, null)
-                    Toast.makeText(this, "Deleted", Toast.LENGTH_SHORT).show()
-                    setResult(Activity.RESULT_OK)
-                    
-                    val currentPos = binding.viewPager.currentItem
-                    photosList.removeAt(currentPos)
-                    if (photosList.isEmpty()) {
-                        finish()
-                    } else {
-                        adapter.updatePhotos(photosList)
-                    }
+                    adapter.updatePhotos(photosList)
                 }
+            } catch (e: Exception) {
+                Toast.makeText(this@ImageViewerActivity, "Failed to move to trash", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: SecurityException) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && e is RecoverableSecurityException) {
-                val intentSenderRequest = IntentSenderRequest.Builder(e.userAction.actionIntent.intentSender).build()
-                intentSenderLauncher.launch(intentSenderRequest)
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Delete failed: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -51,6 +51,24 @@ class PhotoCollectionActivity : AppCompatActivity() {
     private val photos = mutableListOf<Photo>()
     private val PERMISSION_REQUEST_CODE = 123
     private var actionMode: ActionMode? = null
+    
+    private val contentObserver = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            super.onChange(selfChange, uri)
+            android.util.Log.d("SnapySync", "MediaStore changed, refreshing context: $collectionType")
+            refreshCurrentView()
+        }
+    }
+
+    private fun refreshCurrentView() {
+        when (collectionType) {
+            "liked" -> loadPhotosFromDatabaseFolder(PhotoSwipeActivity.FOLDER_LIKED)
+            "disliked" -> loadPhotosFromDatabaseFolder(PhotoSwipeActivity.FOLDER_DISLIKED)
+            "trash" -> loadPhotosFromDatabaseFolder(PhotoSwipeActivity.FOLDER_TRASH)
+            "" -> loadGalleryImagesAndSetup()
+            else -> loadPhotosFromDatabaseFolder(collectionType) // Custom albums
+        }
+    }
 
     private val intentSenderLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
@@ -88,8 +106,14 @@ class PhotoCollectionActivity : AppCompatActivity() {
                 setupButtons()
             }
             "disliked" -> {
-                binding.toolbar.title = "Trash"
+                binding.toolbar.title = "Disliked"
                 loadPhotosFromDatabaseFolder(PhotoSwipeActivity.FOLDER_DISLIKED)
+                setupRecyclerView()
+                setupButtons()
+            }
+            "trash" -> {
+                binding.toolbar.title = "Trash"
+                loadPhotosFromDatabaseFolder(PhotoSwipeActivity.FOLDER_TRASH)
                 setupRecyclerView()
                 setupButtons()
             }
@@ -104,27 +128,39 @@ class PhotoCollectionActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        contentResolver.registerContentObserver(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            true,
+            contentObserver
+        )
         // Ensure gallery is fresh when returning from viewer or cropper
         if (collectionType == "") {
             checkPermissionAndLoadImages()
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        contentResolver.unregisterContentObserver(contentObserver)
+    }
+
     private fun loadPhotosFromDatabaseFolder(folderName: String) {
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val folderId = repository.getOrCreateFolderId(folderName)
-            repository.getPhotosInFolder(folderId).collect { uris ->
-                // Map URIs to Photo objects
-                // For simplicity, we create temporary Photo objects. 
-                // In a production app, we'd query MediaStore for full metadata if needed.
-                val folderPhotos = uris.mapIndexed { index, uriString ->
-                    Photo(id = index, imageUri = Uri.parse(uriString))
-                }
-                photos.clear()
-                photos.addAll(folderPhotos)
-                displayPhotos(photos)
+            repository.getPhotosInFolder(folderId).collect { folderUriStrings ->
+                val allPhotos = loadGalleryImages()
+                val folderUriSet = folderUriStrings.toSet()
                 
-                binding.emptyStateText.visibility = if (photos.isEmpty()) View.VISIBLE else View.GONE
+                // Map to real photo objects from MediaStore to get correct dates
+                val filtered = allPhotos.filter { folderUriSet.contains(it.imageUri.toString()) }
+                
+                withContext(Dispatchers.Main) {
+                    photos.clear()
+                    photos.addAll(filtered)
+                    displayPhotos(photos)
+                    
+                    binding.emptyStateText.visibility = if (photos.isEmpty()) View.VISIBLE else View.GONE
+                }
             }
         }
     }
@@ -150,6 +186,20 @@ class PhotoCollectionActivity : AppCompatActivity() {
                 R.id.menu_favorites -> {
                     val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
                         putExtra("type", "liked")
+                    }
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_disliked -> {
+                    val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
+                        putExtra("type", "disliked")
+                    }
+                    startActivity(intent)
+                    true
+                }
+                R.id.menu_trash -> {
+                    val intent = Intent(this, PhotoCollectionActivity::class.java).apply {
+                        putExtra("type", "trash")
                     }
                     startActivity(intent)
                     true
@@ -184,54 +234,74 @@ class PhotoCollectionActivity : AppCompatActivity() {
     }
 
     private fun loadGalleryImagesAndSetup() {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
+            // First, load the base images from MediaStore
             val loadedPhotos = loadGalleryImages()
-            
-            // Enrich with database status - OPTIMIZED
-            val folderIdLiked = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_LIKED)
-            val folderIdDisliked = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_DISLIKED)
-            
-            val likedUris = repository.getPhotoUrisInFolder(folderIdLiked).toSet()
-            val dislikedUris = repository.getPhotoUrisInFolder(folderIdDisliked).toSet()
-            
-            loadedPhotos.forEach { photo ->
-                val uriString = photo.imageUri?.toString() ?: return@forEach
-                photo.isLiked = likedUris.contains(uriString)
-                photo.isDisliked = dislikedUris.contains(uriString)
-            }
 
-            withContext(Dispatchers.Main) {
-                photos.clear()
-                photos.addAll(loadedPhotos)
-                
-                // Update singleton to ensure other activities see the latest data
-                PhotoViewerData.currentPhotos = photos.toList()
+            // Then, observe the database for status updates (Favorites, Trash, etc)
+            // We use getOrCreateFolderId to ensure system folders exist
+            val likedFolderId = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_LIKED)
+            val dislikedFolderId = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_DISLIKED)
+            val trashFolderId = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_TRASH)
 
-                displayPhotos(photos)
+            // Combine MediaStore data with Database status updates
+            repository.allFolders.collect {
+                val likedUris = repository.getPhotoUrisInFolder(likedFolderId).toSet()
+                val trashedUris = repository.getPhotoUrisInFolder(trashFolderId).toSet()
+                val dislikedUris = repository.getPhotoUrisInFolder(dislikedFolderId).toSet()
 
-                if (photos.isEmpty()) {
-                    binding.emptyStateText.visibility = View.VISIBLE
-                    binding.emptyStateText.text = "Quiet night in the gallery."
-                } else {
-                    binding.emptyStateText.visibility = View.GONE
+                // Filter out trashed items and enrich the rest
+                val filteredAndEnriched = loadedPhotos
+                    .filter { !trashedUris.contains(it.imageUri.toString()) }
+                    .map { photo ->
+                        val uriStr = photo.imageUri.toString()
+                        photo.copy(
+                            isLiked = likedUris.contains(uriStr),
+                            isDisliked = dislikedUris.contains(uriStr)
+                        )
+                    }
+
+                withContext(Dispatchers.Main) {
+                    photos.clear()
+                    photos.addAll(filteredAndEnriched)
+                    PhotoViewerData.currentPhotos = photos.toList()
+                    displayPhotos(photos)
+                    binding.emptyStateText.visibility = if (photos.isEmpty()) View.VISIBLE else View.GONE
                 }
             }
         }
     }
 
     private fun loadGalleryImages(): List<Photo> {
-        val projection = arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.DATE_TAKEN)
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DATE_TAKEN,
+            MediaStore.Images.Media.DATE_MODIFIED,
+            MediaStore.Images.Media.DATE_ADDED
+        )
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
         val loadedPhotos = mutableListOf<Photo>()
         contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, sortOrder)?.use { cursor ->
             val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val dateCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+            val takenCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+            val modifiedCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED)
+            val addedCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
+            
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idCol)
-                val dateTaken = cursor.getLong(dateCol)
+                
+                // Date Fallback: Taken -> Modified -> Added
+                var date = cursor.getLong(takenCol)
+                if (date == 0L) {
+                    // DATE_MODIFIED and DATE_ADDED are often in seconds, convert to ms
+                    date = cursor.getLong(modifiedCol) * 1000
+                }
+                if (date == 0L) {
+                    date = cursor.getLong(addedCol) * 1000
+                }
+                
                 val contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                // Use the real MediaStore ID instead of a counter
-                loadedPhotos.add(Photo(id = id.toInt(), imageUri = contentUri, dateTaken = dateTaken))
+                loadedPhotos.add(Photo(id = id.toInt(), imageUri = contentUri, dateTaken = date))
             }
         }
         return loadedPhotos
@@ -402,14 +472,37 @@ class PhotoCollectionActivity : AppCompatActivity() {
     private fun showDeleteConfirmationDialog(selectedPhotos: List<Photo>) {
         if (selectedPhotos.isEmpty()) return
         
+        val title = if (collectionType == "trash") "Delete Permanently" else "Move to Trash"
+        val message = if (collectionType == "trash") 
+            "Are you sure you want to permanently delete these ${selectedPhotos.size} photos? This cannot be undone."
+            else "Move ${selectedPhotos.size} photos to Trash?"
+
         AlertDialog.Builder(this)
-            .setTitle("Delete Photos")
-            .setMessage("Are you sure you want to delete these ${selectedPhotos.size} photos from storage?")
-            .setPositiveButton("Delete") { _, _ ->
-                requestBatchDelete(selectedPhotos)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(if (collectionType == "trash") "Delete" else "Move") { _, _ ->
+                if (collectionType == "trash") {
+                    requestBatchDelete(selectedPhotos)
+                } else {
+                    moveToTrash(selectedPhotos)
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun moveToTrash(selectedPhotos: List<Photo>) {
+        lifecycleScope.launch {
+            try {
+                val folderId = repository.getOrCreateFolderId(PhotoSwipeActivity.FOLDER_TRASH)
+                repository.addPhotosToFolder(folderId, selectedPhotos.mapNotNull { it.imageUri?.toString() })
+                Toast.makeText(this@PhotoCollectionActivity, "Moved to Trash", Toast.LENGTH_SHORT).show()
+                loadGalleryImagesAndSetup()
+            } catch (e: Exception) {
+                Toast.makeText(this@PhotoCollectionActivity, "Failed to move to trash", Toast.LENGTH_SHORT).show()
+            }
+            actionMode?.finish()
+        }
     }
 
     private fun requestBatchDelete(selectedPhotos: List<Photo>) {
@@ -555,14 +648,16 @@ class PhotoCollectionActivity : AppCompatActivity() {
                 val folderName = when (collectionType) {
                     "liked" -> PhotoSwipeActivity.FOLDER_LIKED
                     "disliked" -> PhotoSwipeActivity.FOLDER_DISLIKED
+                    "trash" -> PhotoSwipeActivity.FOLDER_TRASH
                     else -> collectionType // If using custom name
                 }
                 
                 val folderId = repository.getOrCreateFolderId(folderName)
                 repository.removePhotosFromFolder(folderId, selectedPhotos.mapNotNull { it.imageUri?.toString() })
                 
-                Toast.makeText(this@PhotoCollectionActivity, "Removed from $folderName", Toast.LENGTH_SHORT).show()
-                // The flow collection in loadPhotosFromDatabaseFolder will automatically refresh the UI
+                val message = if (collectionType == "trash") "Restored to gallery" else "Removed from $folderName"
+                Toast.makeText(this@PhotoCollectionActivity, message, Toast.LENGTH_SHORT).show()
+                // Refresh is automatic due to flow collection
             } catch (e: Exception) {
                 Toast.makeText(this@PhotoCollectionActivity, "Error removing from album", Toast.LENGTH_SHORT).show()
             }
