@@ -37,6 +37,7 @@ import com.example.snapy.databinding.DialogAddToFolderBinding
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -51,6 +52,7 @@ class PhotoCollectionActivity : AppCompatActivity() {
     private val photos = mutableListOf<Photo>()
     private val PERMISSION_REQUEST_CODE = 123
     private var actionMode: ActionMode? = null
+    private var refreshJob: Job? = null
     
     private val contentObserver = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
@@ -75,7 +77,9 @@ class PhotoCollectionActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             Toast.makeText(this, "Action completed", Toast.LENGTH_SHORT).show()
-            loadGalleryImagesAndSetup()
+            actionMode?.finish()
+            adapter.clearSelection() // Safety clear
+            refreshCurrentView()
         }
     }
 
@@ -145,7 +149,8 @@ class PhotoCollectionActivity : AppCompatActivity() {
     }
 
     private fun loadPhotosFromDatabaseFolder(folderName: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
+        refreshJob?.cancel()
+        refreshJob = lifecycleScope.launch(Dispatchers.IO) {
             val folderId = repository.getOrCreateFolderId(folderName)
             repository.getPhotosInFolder(folderId).collect { folderUriStrings ->
                 val allPhotos = loadGalleryImages()
@@ -234,7 +239,8 @@ class PhotoCollectionActivity : AppCompatActivity() {
     }
 
     private fun loadGalleryImagesAndSetup() {
-        lifecycleScope.launch(Dispatchers.IO) {
+        refreshJob?.cancel()
+        refreshJob = lifecycleScope.launch(Dispatchers.IO) {
             // First, load the base images from MediaStore
             val loadedPhotos = loadGalleryImages()
 
@@ -332,7 +338,12 @@ class PhotoCollectionActivity : AppCompatActivity() {
             }
         )
 
-        val layoutManager = StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
+        val layoutManager = GridLayoutManager(this, 3)
+        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return if (adapter.getItemViewType(position) == GridPhotoAdapter.TYPE_HEADER) 3 else 1
+            }
+        }
 
         binding.recyclerView.apply {
             this.layoutManager = layoutManager

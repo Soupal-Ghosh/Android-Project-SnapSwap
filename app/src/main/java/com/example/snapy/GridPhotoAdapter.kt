@@ -23,8 +23,8 @@ class GridPhotoAdapter(
     private val selectedItems = mutableSetOf<Int>()
 
     companion object {
-        private const val TYPE_HEADER = 0
-        private const val TYPE_PHOTO = 1
+        const val TYPE_HEADER = 0
+        const val TYPE_PHOTO = 1
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -78,7 +78,7 @@ class GridPhotoAdapter(
                 holder.itemView.setOnLongClickListener {
                     if (!isSelectionMode) {
                         isSelectionMode = true
-                        toggleSelection(photoItem.photo.id)
+                        // toggleSelection(photoItem.photo.id) // This is handled by Activity's callback
                         onPhotoLongClick(photoItem.photo)
                         true
                     } else {
@@ -102,9 +102,18 @@ class GridPhotoAdapter(
     fun setSelectionMode(enabled: Boolean) {
         if (isSelectionMode != enabled) {
             isSelectionMode = enabled
-            if (!enabled) selectedItems.clear()
+            if (!enabled) {
+                selectedItems.clear()
+                onSelectionChanged(0)
+            }
             notifyDataSetChanged()
         }
+    }
+
+    fun clearSelection() {
+        selectedItems.clear()
+        onSelectionChanged(0)
+        notifyDataSetChanged()
     }
 
     fun getSelectedPhotos(): List<Photo> {
@@ -133,7 +142,7 @@ class GridPhotoAdapter(
 
         fun bind(photo: Photo, isSelected: Boolean) {
             val requestOptions = RequestOptions()
-                .fitCenter() 
+                .centerCrop()
                 .override(400, 400) // Lower resolution for grid thumbnails
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .error(android.R.drawable.ic_menu_report_image)
