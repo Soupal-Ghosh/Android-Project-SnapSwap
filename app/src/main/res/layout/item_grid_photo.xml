@@ -10,41 +10,46 @@
     app:strokeWidth="1dp"
     app:strokeColor="@color/lavender_pink">
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:scaleType="centerCrop"
             android:contentDescription="Gallery Shot"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Snapy.RoundedPhotos" />
 
         <ImageView
             android:id="@+id/ivFavorite"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_gravity="bottom|end"
             android:layout_margin="8dp"
             android:src="@drawable/ic_favorite_filled"
             android:visibility="gone"
             android:contentDescription="Favorite"
+            app:layout_constraintBottom_toBottomOf="@id/imageView"
+            app:layout_constraintEnd_toEndOf="@id/imageView"
             app:tint="@color/lavender_pink" />
 
         <ImageView
             android:id="@+id/selectionIndicator"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_gravity="top|end"
             android:layout_margin="8dp"
             android:src="@drawable/ic_check"
             android:visibility="gone"
             android:contentDescription="Selected"
+            app:layout_constraintEnd_toEndOf="@id/imageView"
+            app:layout_constraintTop_toTopOf="@id/imageView"
             app:tint="@color/lavender_pink" />
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>
