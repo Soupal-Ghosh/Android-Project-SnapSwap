@@ -18,7 +18,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    androidResources {
+        noCompress += "onnx"
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -88,7 +90,8 @@ dependencies {
 
     // Coroutines Play Services for Task.await extension
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-
+    // ✅ Add this
+    implementation ("com.microsoft.onnxruntime:onnxruntime-android:1.19.2")
     //  AndroidX Core & UI Components
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")

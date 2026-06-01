@@ -27,14 +27,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.asRequestBody
-import org.json.JSONObject
-import java.io.File
-import java.io.FileOutputStream
 import java.security.MessageDigest
-import java.util.concurrent.TimeUnit
 
 class AICategorizationActivity : AppCompatActivity() {
 
@@ -45,14 +38,8 @@ class AICategorizationActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
 
     private lateinit var captionCache: android.content.SharedPreferences
-
+    private lateinit var blip: BlipInference
     private var selectedPhotos = mutableListOf<Uri>()
-
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(120, TimeUnit.SECONDS)
-        .readTimeout(120, TimeUnit.SECONDS)
-        .writeTimeout(120, TimeUnit.SECONDS)
-        .build()
 
     private val pickImages = registerForActivityResult(
         ActivityResultContracts.GetMultipleContents()
@@ -90,6 +77,16 @@ class AICategorizationActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please select photos first", Toast.LENGTH_SHORT).show()
             }
         }
+        blip = BlipInference(this)
+        btnStartCategorization.isEnabled = false  // disable until model loads
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            blip.load()
+            withContext(Dispatchers.Main) {
+                btnStartCategorization.isEnabled = true
+                Toast.makeText(this@AICategorizationActivity, "Model ready", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun checkPermission() {
@@ -124,39 +121,6 @@ class AICategorizationActivity : AppCompatActivity() {
         }
     }
 
-    private fun uriToCompressedFile(uri: Uri): File {
-
-        val inputStream = contentResolver.openInputStream(uri)
-        val originalBitmap = BitmapFactory.decodeStream(inputStream)
-        inputStream?.close()
-
-        val maxSize = 512
-
-        val ratio = minOf(
-            maxSize.toFloat() / originalBitmap.width,
-            maxSize.toFloat() / originalBitmap.height,
-            1f
-        )
-
-        val newWidth = (originalBitmap.width * ratio).toInt()
-        val newHeight = (originalBitmap.height * ratio).toInt()
-
-        val resizedBitmap = Bitmap.createScaledBitmap(
-            originalBitmap,
-            newWidth,
-            newHeight,
-            true
-        )
-
-        val file = File(cacheDir, "upload_${System.currentTimeMillis()}.jpg")
-
-        FileOutputStream(file).use { out ->
-            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
-        }
-
-        return file
-    }
-
     // ==============================
     // HASH GENERATION FOR CACHING
     // ==============================
@@ -173,66 +137,37 @@ class AICategorizationActivity : AppCompatActivity() {
     }
 
     private fun startAICaptioning() {
-
         progressBar.visibility = View.VISIBLE
         btnStartCategorization.isEnabled = false
 
         lifecycleScope.launch(Dispatchers.IO) {
-
             val results = mutableMapOf<Uri, String>()
 
-            val jobs = selectedPhotos.map { uri ->
-                async {
-                    try {
+            // ✅ Sequential — not parallel, ONNX sessions aren't thread-safe
+            for (uri in selectedPhotos) {
+                try {
+                    val imageHash = generateImageHash(uri)
 
-                        val imageHash = generateImageHash(uri)
-
-                        // 🔹 Check Cache First
-                        val cachedCaption = captionCache.getString(imageHash, null)
-                        if (cachedCaption != null) {
-                            return@async uri to cachedCaption
-                        }
-
-                        // 🔹 Compress before upload
-                        val imageFile = uriToCompressedFile(uri)
-
-                        val requestBody = MultipartBody.Builder()
-                            .setType(MultipartBody.FORM)
-                            .addFormDataPart(
-                                "image",
-                                imageFile.name,
-                                imageFile.asRequestBody("image/jpeg".toMediaType())
-                            )
-                            .build()
-
-                        val request = Request.Builder()
-                            .url("https://android-aicategorization-backend.onrender.com/describe")
-                            .post(requestBody)
-                            .build()
-
-                        val response = client.newCall(request).execute()
-
-                        val caption = if (response.isSuccessful) {
-                            JSONObject(response.body?.string() ?: "{}")
-                                .optString("caption", "No caption")
-                        } else {
-                            "Server error: ${response.code}"
-                        }
-
-                        // 🔹 Save to cache
-                        captionCache.edit().putString(imageHash, caption).apply()
-
-                        uri to caption
-
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        uri to "Error: ${e.message}"
+                    val cachedCaption = captionCache.getString(imageHash, null)
+                    if (cachedCaption != null) {
+                        results[uri] = cachedCaption
+                        continue
                     }
-                }
-            }
 
-            jobs.awaitAll().forEach { (uri, caption) ->
-                results[uri] = caption
+                    val bitmap = contentResolver.openInputStream(uri).use {
+                        BitmapFactory.decodeStream(it)
+                    }
+
+                    // ✅ suspend call — respects the mutex in BlipInference
+                    val caption = blip.caption(bitmap)
+
+                    captionCache.edit().putString(imageHash, caption).apply()
+                    results[uri] = caption
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    results[uri] = "Error: ${e.message}"
+                }
             }
 
             withContext(Dispatchers.Main) {
